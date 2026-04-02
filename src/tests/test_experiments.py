@@ -25,7 +25,10 @@ def test_validate_config_keeps_global_seed_consistent():
 def test_aggregate_runs_writes_summary_files(tmp_path):
     run_dir = tmp_path / "outputs" / "paper" / "demo" / "run_0"
     run_dir.mkdir(parents=True)
-    (run_dir / "metrics.json").write_text(json.dumps({"NMSE_dB": -3.0, "total_time_sec": 1.25}), encoding="utf-8")
+    (run_dir / "metrics.json").write_text(
+        json.dumps({"reference_available": True, "NMSE_dB": -3.0, "total_time_sec": 1.25, "cache_hit_rate": 0.5}),
+        encoding="utf-8",
+    )
     (run_dir / "manifest.json").write_text(
         json.dumps({"seed": 3, "experiment": {"name": "demo", "group": "paper"}}),
         encoding="utf-8",
@@ -39,3 +42,6 @@ def test_aggregate_runs_writes_summary_files(tmp_path):
 
     assert outputs["csv"].exists()
     assert outputs["jsonl"].exists()
+    csv_text = outputs["csv"].read_text(encoding="utf-8")
+    assert "reference_available" in csv_text
+    assert "cache_hit_rate" in csv_text

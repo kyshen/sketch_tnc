@@ -52,18 +52,26 @@ class MaterializeTask(BaseTask):
         if self.method is None:
             raise ValueError("Method is not set.")
         dense_hat = self.method.reconstruct()
-        if self._exact_reference is None:
-            self._exact_reference = dense_hat
-            self._exact_total_time_sec = None
-        eval_dict: Dict[str, Any] = {}
-        eval_dict.update(REL(self._exact_reference, dense_hat))
-        eval_dict.update(RMSE(self._exact_reference, dense_hat))
-        eval_dict.update(NMSE(self._exact_reference, dense_hat))
-        eval_dict.update(NMSE_dB(self._exact_reference, dense_hat))
         state = self.method.get_state_dict()
+        eval_dict: Dict[str, Any] = {
+            "reference_available": bool(self._exact_reference is not None),
+            "num_method_params": int(self.method.get_num_params()),
+        }
+        if self._exact_reference is not None:
+            eval_dict.update(REL(self._exact_reference, dense_hat))
+            eval_dict.update(RMSE(self._exact_reference, dense_hat))
+            eval_dict.update(NMSE(self._exact_reference, dense_hat))
+            eval_dict.update(NMSE_dB(self._exact_reference, dense_hat))
+        else:
+            eval_dict["reference_metric_status"] = "skipped_without_exact_reference"
         eval_dict.update(TIMES(
             contract_time_sec=float(state.get("contract_time_sec", 0.0)),
             emit_time_sec=float(state.get("emit_time_sec", 0.0)),
             exact_total_time_sec=self._exact_total_time_sec,
         ))
+        meta = state.get("meta", {})
+        if isinstance(meta, dict):
+            for key, value in meta.items():
+                if isinstance(value, (bool, int, float, str)):
+                    eval_dict[key] = value
         return eval_dict

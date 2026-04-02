@@ -18,6 +18,10 @@ class PartitionNode:
     def is_leaf(self) -> bool:
         return not self.children
 
+    @property
+    def node_key(self) -> tuple[int, ...]:
+        return tuple(sorted(self.node_ids))
+
 
 def _subtree_boundary_labels(tn: TensorNetwork, node_ids: Set[int]) -> List[int]:
     out: List[int] = []

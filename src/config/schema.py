@@ -45,6 +45,7 @@ class MethodConfig:
     refine_tol: float = 1e-3
     max_refine_steps: int = 0
     rank_growth_factor: int = 2
+    cache_enabled: bool = True
 
 
 @dataclass

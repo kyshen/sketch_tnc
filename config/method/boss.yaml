@@ -11,4 +11,5 @@ adaptive_refine: false
 refine_tol: 0.001
 max_refine_steps: 0
 rank_growth_factor: 2
+cache_enabled: true
 seed: ${seed}

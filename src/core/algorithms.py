@@ -1,10 +1,12 @@
 import copy
+import hashlib
 from dataclasses import dataclass
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 
 from src.core.blocking import OutputBlock
+from src.core.cache import SeparatorStateCache, StateCacheKey, make_local_block_key
 from src.core.network import TensorNetwork
 from src.core.partition import PartitionNode, build_partition_tree
 from src.core.state import SeparatorState, compressed_state_from_tensor, exact_state_from_tensor, merge_states
@@ -15,7 +17,7 @@ class MaterializationResult:
     dense: np.ndarray
     contract_time_sec: float
     emit_time_sec: float
-    meta: Dict[str, float]
+    meta: Dict[str, Any]
 
 
 @dataclass
@@ -23,7 +25,28 @@ class BossResult:
     dense: np.ndarray
     contract_time_sec: float
     emit_time_sec: float
-    meta: Dict[str, float]
+    meta: Dict[str, Any]
+
+
+@dataclass
+class BossRuntimeStats:
+    leaf_states_built: int = 0
+    internal_states_built: int = 0
+    peak_rank: int = 0
+
+    def observe(self, state: SeparatorState, *, is_leaf: bool) -> None:
+        if is_leaf:
+            self.leaf_states_built += 1
+        else:
+            self.internal_states_built += 1
+        self.peak_rank = max(self.peak_rank, int(state.rank))
+
+    def summary(self) -> Dict[str, int]:
+        return {
+            "leaf_states_built": int(self.leaf_states_built),
+            "internal_states_built": int(self.internal_states_built),
+            "peak_rank": int(self.peak_rank),
+        }
 
 
 def materialize_exact(tn: TensorNetwork, blocks: List[OutputBlock], optimize: str = "optimal") -> MaterializationResult:
@@ -49,37 +72,94 @@ def materialize_exact(tn: TensorNetwork, blocks: List[OutputBlock], optimize: st
     return MaterializationResult(dense=dense, contract_time_sec=t_contract, emit_time_sec=t_emit, meta={"num_blocks": len(blocks)})
 
 
-def _leaf_state(tn: TensorNetwork, part: PartitionNode, slice_map, cfg, rng: np.random.Generator | None = None) -> SeparatorState:
+def _cfg_signature(cfg: Any) -> Tuple[Tuple[str, object], ...]:
+    names = (
+        "target_rank",
+        "max_rank",
+        "randomized",
+        "oversample",
+        "n_power_iter",
+        "selective_threshold",
+        "optimize",
+    )
+    return tuple((name, getattr(cfg, name, None)) for name in names)
+
+
+def _state_cache_key(part: PartitionNode, slice_map, cfg: Any) -> StateCacheKey:
+    return (
+        part.node_key,
+        make_local_block_key(part.open_labels, slice_map),
+        _cfg_signature(cfg),
+    )
+
+
+def _rng_from_state_key(base_seed: int, state_key: StateCacheKey) -> np.random.Generator:
+    payload = repr((int(base_seed), state_key)).encode("utf-8")
+    digest = hashlib.sha256(payload).digest()
+    seed = int.from_bytes(digest[:8], "little") % (2**32 - 1)
+    return np.random.default_rng(seed)
+
+
+def _leaf_state(
+    tn: TensorNetwork,
+    part: PartitionNode,
+    slice_map,
+    cfg,
+    rng: np.random.Generator | None = None,
+    stats: BossRuntimeStats | None = None,
+) -> SeparatorState:
     nid = next(iter(part.node_ids))
     output_labels = list(part.open_labels) + list(part.boundary_labels)
     T = tn.contract_subnetwork([nid], output_labels, slice_map=slice_map, optimize=getattr(cfg, "optimize", "greedy"))
     open_dims = [len(slice_map[l]) if l in slice_map else tn.label_dims[l] for l in part.open_labels]
     boundary_dims = [tn.label_dims[l] for l in part.boundary_labels]
     if getattr(cfg, "target_rank", 0) <= 0:
-        return exact_state_from_tensor(T, part.open_labels, open_dims, part.boundary_labels, boundary_dims)
-    target_rank = min(int(getattr(cfg, "target_rank", 1)), max(1, int(np.prod(open_dims)) if open_dims else 1), max(1, int(np.prod(boundary_dims)) if boundary_dims else 1))
-    return compressed_state_from_tensor(
-        T,
-        part.open_labels,
-        open_dims,
-        part.boundary_labels,
-        boundary_dims,
-        target_rank=target_rank,
-        randomized=bool(getattr(cfg, "randomized", True)),
-        oversample=int(getattr(cfg, "oversample", 4)),
-        n_power_iter=int(getattr(cfg, "n_power_iter", 1)),
-        rng=rng,
-    )
+        state = exact_state_from_tensor(T, part.open_labels, open_dims, part.boundary_labels, boundary_dims)
+    else:
+        target_rank = min(int(getattr(cfg, "target_rank", 1)), max(1, int(np.prod(open_dims)) if open_dims else 1), max(1, int(np.prod(boundary_dims)) if boundary_dims else 1))
+        state = compressed_state_from_tensor(
+            T,
+            part.open_labels,
+            open_dims,
+            part.boundary_labels,
+            boundary_dims,
+            target_rank=target_rank,
+            randomized=bool(getattr(cfg, "randomized", True)),
+            oversample=int(getattr(cfg, "oversample", 4)),
+            n_power_iter=int(getattr(cfg, "n_power_iter", 1)),
+            rng=rng,
+        )
+    if stats is not None:
+        stats.observe(state, is_leaf=True)
+    return state
 
 
-def _build_state(tn: TensorNetwork, part: PartitionNode, slice_map, cfg, rng: np.random.Generator | None = None) -> SeparatorState:
+def _build_state(
+    tn: TensorNetwork,
+    part: PartitionNode,
+    slice_map,
+    cfg,
+    *,
+    cache: SeparatorStateCache | None = None,
+    stats: BossRuntimeStats | None = None,
+    base_seed: int = 0,
+) -> SeparatorState:
+    state_key = _state_cache_key(part, slice_map, cfg)
+    if cache is not None:
+        cached = cache.get(state_key)
+        if cached is not None:
+            return cached
+    rng = _rng_from_state_key(base_seed, state_key)
     if part.is_leaf:
-        return _leaf_state(tn, part, slice_map, cfg, rng=rng)
+        state = _leaf_state(tn, part, slice_map, cfg, rng=rng, stats=stats)
+        if cache is not None:
+            cache.put(state_key, state)
+        return state
     left, right = part.children
-    s_left = _build_state(tn, left, slice_map, cfg, rng=rng)
-    s_right = _build_state(tn, right, slice_map, cfg, rng=rng)
+    s_left = _build_state(tn, left, slice_map, cfg, cache=cache, stats=stats, base_seed=base_seed)
+    s_right = _build_state(tn, right, slice_map, cfg, cache=cache, stats=stats, base_seed=base_seed)
     rank = min(int(getattr(cfg, "target_rank", 1)), int(getattr(cfg, "max_rank", getattr(cfg, "target_rank", 1))))
-    return merge_states(
+    state = merge_states(
         s_left,
         s_right,
         cut_labels=part.cut_labels,
@@ -92,6 +172,11 @@ def _build_state(tn: TensorNetwork, part: PartitionNode, slice_map, cfg, rng: np
         selective_threshold=int(getattr(cfg, "selective_threshold", 0)),
         rng=rng,
     )
+    if stats is not None:
+        stats.observe(state, is_leaf=False)
+    if cache is not None:
+        cache.put(state_key, state)
+    return state
 
 
 def _state_to_dense(state: SeparatorState) -> np.ndarray:
@@ -107,7 +192,9 @@ def _maybe_refine_block(
     block: OutputBlock,
     approx_block: np.ndarray,
     cfg,
-    rng: np.random.Generator | None = None,
+    cache: SeparatorStateCache | None = None,
+    stats: BossRuntimeStats | None = None,
+    base_seed: int = 0,
 ) -> tuple[np.ndarray, int]:
     if not bool(getattr(cfg, "adaptive_refine", False)):
         return approx_block, int(getattr(cfg, "target_rank", 1))
@@ -128,7 +215,15 @@ def _maybe_refine_block(
         local_cfg = copy.deepcopy(cfg)
         setattr(local_cfg, "target_rank", target_rank)
         part = build_partition_tree(tn)
-        state = _build_state(tn, part, block.slice_map, local_cfg, rng=rng)
+        state = _build_state(
+            tn,
+            part,
+            block.slice_map,
+            local_cfg,
+            cache=cache,
+            stats=stats,
+            base_seed=base_seed,
+        )
         current = _state_to_dense(state)
     return current, target_rank
 
@@ -137,7 +232,9 @@ def materialize_boss(tn: TensorNetwork, blocks: List[OutputBlock], cfg) -> BossR
     import time
 
     part = build_partition_tree(tn)
-    run_rng = np.random.default_rng(int(getattr(cfg, "seed", 0)))
+    cache = SeparatorStateCache(enabled=bool(getattr(cfg, "cache_enabled", True)))
+    stats = BossRuntimeStats()
+    base_seed = int(getattr(cfg, "seed", 0))
     dense = np.zeros(tn.output_shape, dtype=np.float64)
     t_contract = 0.0
     t_emit = 0.0
@@ -147,16 +244,31 @@ def materialize_boss(tn: TensorNetwork, blocks: List[OutputBlock], cfg) -> BossR
     suffix_labels = tn.open_label_order[len(block_labels):]
 
     for block in blocks:
-        block_rng = np.random.default_rng(int(run_rng.integers(0, 2**32 - 1)))
         t0 = time.perf_counter()
-        state = _build_state(tn, part, block.slice_map, cfg, rng=block_rng)
+        state = _build_state(
+            tn,
+            part,
+            block.slice_map,
+            cfg,
+            cache=cache,
+            stats=stats,
+            base_seed=base_seed,
+        )
         perm = [state.open_labels.index(lbl) for lbl in tn.open_label_order]
         block_tensor = _state_to_dense(state)
         if list(range(len(perm))) != perm:
             block_tensor = np.transpose(block_tensor, perm)
         if bool(getattr(cfg, "adaptive_refine", False)):
             old_rank = int(getattr(cfg, "target_rank", 1))
-            block_tensor, used_rank = _maybe_refine_block(tn, block, block_tensor, cfg, rng=block_rng)
+            block_tensor, used_rank = _maybe_refine_block(
+                tn,
+                block,
+                block_tensor,
+                cfg,
+                cache=cache,
+                stats=stats,
+                base_seed=base_seed,
+            )
             if used_rank != old_rank:
                 refined_blocks += 1
             used_ranks.append(int(used_rank))
@@ -177,4 +289,6 @@ def materialize_boss(tn: TensorNetwork, blocks: List[OutputBlock], cfg) -> BossR
         "refined_blocks": refined_blocks,
         "mean_rank": float(np.mean(used_ranks)) if used_ranks else float(getattr(cfg, "target_rank", 1)),
         "max_rank": max(used_ranks) if used_ranks else int(getattr(cfg, "target_rank", 1)),
+        **stats.summary(),
+        **cache.summary(),
     })

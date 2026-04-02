@@ -20,6 +20,34 @@ MANIFEST_FILENAME = "manifest.json"
 RESOLVED_CONFIG_FILENAME = "resolved_config.yaml"
 SUMMARY_JSONL_FILENAME = "summary.jsonl"
 SUMMARY_CSV_FILENAME = "summary.csv"
+PREFERRED_SUMMARY_FIELDS = [
+    "run_dir",
+    "reference_available",
+    "reference_metric_status",
+    "rel_error",
+    "RMSE",
+    "NMSE",
+    "NMSE_dB",
+    "total_time_sec",
+    "contract_time_sec",
+    "emit_time_sec",
+    "speedup_vs_exact",
+    "cache_hit_rate",
+    "cache_hits",
+    "cache_misses",
+    "num_cached_states",
+    "num_blocks",
+    "peak_rank",
+    "max_rank",
+    "mean_rank",
+    "cfg.seed",
+    "cfg.data.name",
+    "cfg.data.generator",
+    "cfg.method.name",
+    "cfg.method.target_rank",
+    "cfg.block.block_labels",
+    "cfg.block.chunk_size",
+]
 
 
 def save_experiment_run(
@@ -107,7 +135,7 @@ def write_summary(records: Iterable[Dict[str, Any]], output_dir: Path) -> Dict[s
     with jsonl_path.open("w", encoding="utf-8") as f:
         for row in rows:
             f.write(json.dumps(row, ensure_ascii=False, default=str) + "\n")
-    fieldnames: List[str] = []
+    fieldnames: List[str] = [name for name in PREFERRED_SUMMARY_FIELDS if any(name in row for row in rows)]
     for row in rows:
         for key in row.keys():
             if key not in fieldnames:

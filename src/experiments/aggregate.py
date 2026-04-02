@@ -24,6 +24,7 @@ def aggregate_runs(search_root: Path | str, output_dir: Path | str | None = None
         record = load_run_record(run_dir)
         if record is not None:
             records.append(record)
+    records.sort(key=lambda row: str(row.get("run_dir", "")))
     return write_summary(records, summary_dir)
 
 
