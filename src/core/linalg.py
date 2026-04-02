@@ -87,3 +87,36 @@ def compress_from_factors(
     r = min(target_rank, len(s))
     U = Q @ Uh[:, :r]
     return LowRankFactors(left=U * s[:r], right=Vt[:r, :].T)
+
+
+def compress_from_implicit_factors(
+    *,
+    num_rows: int,
+    num_cols: int,
+    latent_rank: int,
+    apply_A,
+    apply_AT,
+    apply_B,
+    apply_BT,
+    target_rank: int,
+    randomized: bool = True,
+    oversample: int = 4,
+    n_power_iter: int = 1,
+    rng: np.random.Generator | None = None,
+) -> LowRankFactors:
+    if target_rank <= 0 or target_rank >= latent_rank or target_rank >= min(num_rows, num_cols):
+        raise ValueError("Implicit compression expects a strictly reducing target rank.")
+    if not randomized:
+        raise ValueError("Implicit compression path currently requires randomized=True.")
+    rng = _resolve_rng(rng)
+    sketch_cols = max(int(target_rank) + int(oversample), int(target_rank) + 1)
+    Omega = rng.standard_normal((int(num_cols), sketch_cols))
+    Y = apply_A(apply_BT(Omega))
+    for _ in range(max(0, int(n_power_iter))):
+        Y = apply_A(apply_BT(apply_B(apply_AT(Y))))
+    Q = orth(Y)
+    small = apply_B(apply_AT(Q)).T
+    Uh, s, Vt = np.linalg.svd(small, full_matrices=False)
+    r = min(int(target_rank), len(s))
+    U = Q @ Uh[:, :r]
+    return LowRankFactors(left=U * s[:r], right=Vt[:r, :].T)

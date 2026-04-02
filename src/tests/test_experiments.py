@@ -120,3 +120,17 @@ def test_merge_states_compresses_when_savings_are_large():
     assert info.compressed is True
     assert info.reason == "compressed"
     assert state.rank == 1
+
+
+def test_validate_config_enables_implicit_merge_sketch_by_default():
+    cfg = OmegaConf.create({
+        "seed": 3,
+        "task": {"name": "materialize"},
+        "data": {"name": "ring", "generator": "ring", "seed": 3},
+        "method": {"name": "boss", "seed": 3},
+        "block": {"name": "default"},
+        "experiment": {"name": "unit", "group": "tests"},
+        "hydra": {"job": {"num": 0}},
+    })
+    validated = validate_config(cfg)
+    assert bool(validated.method.implicit_merge_sketch) is True

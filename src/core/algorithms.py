@@ -38,6 +38,8 @@ class BossRuntimeStats:
     skipped_small_rank_merges: int = 0
     skipped_small_state_merges: int = 0
     skipped_low_saving_merges: int = 0
+    num_implicit_merge_sketches: int = 0
+    num_explicit_merge_compressions: int = 0
 
     def observe(self, state: SeparatorState, *, is_leaf: bool) -> None:
         if is_leaf:
@@ -49,6 +51,10 @@ class BossRuntimeStats:
     def observe_merge(self, merge_info: MergeInfo) -> None:
         if merge_info.compressed:
             self.num_compressed_merges += 1
+            if merge_info.path == "implicit_randomized":
+                self.num_implicit_merge_sketches += 1
+            else:
+                self.num_explicit_merge_compressions += 1
             return
         self.num_exact_merges += 1
         if merge_info.reason == "rank_product_too_small":
@@ -68,6 +74,8 @@ class BossRuntimeStats:
             "skipped_small_rank_merges": int(self.skipped_small_rank_merges),
             "skipped_small_state_merges": int(self.skipped_small_state_merges),
             "skipped_low_saving_merges": int(self.skipped_low_saving_merges),
+            "num_implicit_merge_sketches": int(self.num_implicit_merge_sketches),
+            "num_explicit_merge_compressions": int(self.num_explicit_merge_compressions),
         }
 
 
@@ -105,6 +113,7 @@ def _cfg_signature(cfg: Any) -> Tuple[Tuple[str, object], ...]:
         "compress_min_rank_product",
         "compress_max_exact_size",
         "compress_min_saving_ratio",
+        "implicit_merge_sketch",
         "optimize",
     )
     return tuple((name, getattr(cfg, name, None)) for name in names)
@@ -198,6 +207,7 @@ def _build_state(
         compress_min_rank_product=int(getattr(cfg, "compress_min_rank_product", 0)),
         compress_max_exact_size=int(getattr(cfg, "compress_max_exact_size", 0)),
         compress_min_saving_ratio=float(getattr(cfg, "compress_min_saving_ratio", 0.0)),
+        implicit_merge_sketch=bool(getattr(cfg, "implicit_merge_sketch", True)),
         rng=rng,
     )
     if stats is not None:

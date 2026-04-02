@@ -4,7 +4,7 @@ from typing import Dict, List, Sequence, Tuple
 import numpy as np
 import opt_einsum as oe
 
-from src.core.linalg import compress_from_factors, compress_matrix
+from src.core.linalg import compress_from_factors, compress_from_implicit_factors, compress_matrix
 
 
 @dataclass
@@ -38,6 +38,7 @@ class MergeInfo:
     compressed_size: int
     saving_ratio: float
     reason: str
+    path: str = "explicit"
 
 
 def exact_state_from_tensor(T: np.ndarray, open_labels: Sequence[int], open_dims: Sequence[int], boundary_labels: Sequence[int], boundary_dims: Sequence[int]) -> SeparatorState:
@@ -97,19 +98,82 @@ def _decide_merge_rank(
     compress_min_saving_ratio: float,
 ) -> MergeInfo:
     if target_rank <= 0 or target_rank >= full_rank:
-        return MergeInfo(False, int(full_rank), int(full_rank), int(exact_size), int(exact_size), 0.0, "target_rank_not_reducing")
+        return MergeInfo(False, int(full_rank), int(full_rank), int(exact_size), int(exact_size), 0.0, "target_rank_not_reducing", "explicit")
     used_rank = min(int(target_rank), int(full_rank))
     compressed_size = int(exact_size * used_rank / max(1, full_rank))
     saving_ratio = float(1.0 - (compressed_size / max(1, exact_size)))
     if selective_threshold and estimated_cost < int(selective_threshold):
-        return MergeInfo(False, int(full_rank), int(full_rank), int(exact_size), int(exact_size), 0.0, "below_selective_threshold")
+        return MergeInfo(False, int(full_rank), int(full_rank), int(exact_size), int(exact_size), 0.0, "below_selective_threshold", "explicit")
     if compress_min_rank_product > 0 and full_rank < int(compress_min_rank_product):
-        return MergeInfo(False, int(full_rank), int(full_rank), int(exact_size), int(exact_size), 0.0, "rank_product_too_small")
+        return MergeInfo(False, int(full_rank), int(full_rank), int(exact_size), int(exact_size), 0.0, "rank_product_too_small", "explicit")
     if compress_max_exact_size > 0 and exact_size <= int(compress_max_exact_size):
-        return MergeInfo(False, int(full_rank), int(full_rank), int(exact_size), int(exact_size), saving_ratio, "exact_state_small_enough")
+        return MergeInfo(False, int(full_rank), int(full_rank), int(exact_size), int(exact_size), saving_ratio, "exact_state_small_enough", "explicit")
     if saving_ratio < float(compress_min_saving_ratio):
-        return MergeInfo(False, int(full_rank), int(full_rank), int(exact_size), int(exact_size), saving_ratio, "saving_ratio_too_small")
-    return MergeInfo(True, int(full_rank), int(used_rank), int(exact_size), int(compressed_size), saving_ratio, "compressed")
+        return MergeInfo(False, int(full_rank), int(full_rank), int(exact_size), int(exact_size), saving_ratio, "saving_ratio_too_small", "explicit")
+    return MergeInfo(True, int(full_rank), int(used_rank), int(exact_size), int(compressed_size), saving_ratio, "compressed", "explicit")
+
+
+def _make_merge_linear_ops(
+    left: SeparatorState,
+    right: SeparatorState,
+    *,
+    left_args,
+    right_args,
+    parent_boundary_labels: Sequence[int],
+    parent_boundary_dims: Sequence[int],
+    rank_label_left: int,
+    rank_label_right: int,
+):
+    open_flat_left = int(np.prod(left.open_dims)) if left.open_dims else 1
+    open_flat_right = int(np.prod(right.open_dims)) if right.open_dims else 1
+    boundary_flat = int(np.prod(parent_boundary_dims)) if parent_boundary_dims else 1
+    left_open = left.A.reshape(open_flat_left, left.rank)
+    right_open = right.A.reshape(open_flat_right, right.rank)
+    sample_label = -3
+
+    def apply_A(z: np.ndarray) -> np.ndarray:
+        z3 = z.reshape(left.rank, right.rank, -1)
+        tmp = np.tensordot(left_open, z3, axes=([1], [0]))
+        out = np.tensordot(tmp, right_open, axes=([1], [1]))
+        return np.transpose(out, (0, 2, 1)).reshape(open_flat_left * open_flat_right, -1)
+
+    def apply_AT(y: np.ndarray) -> np.ndarray:
+        y3 = y.reshape(open_flat_left, open_flat_right, -1)
+        tmp = np.tensordot(y3, right_open, axes=([1], [0]))
+        tmp = np.transpose(tmp, (0, 2, 1))
+        out = np.tensordot(left_open.T, tmp, axes=([1], [0]))
+        return out.reshape(left.rank * right.rank, -1)
+
+    def apply_B(z: np.ndarray) -> np.ndarray:
+        z3 = z.reshape(left.rank, right.rank, -1)
+        res = oe.contract(
+            *left_args,
+            *right_args,
+            z3,
+            [rank_label_left, rank_label_right, sample_label],
+            list(parent_boundary_labels) + [sample_label],
+            optimize="greedy",
+        )
+        return res.reshape(boundary_flat, -1)
+
+    def apply_BT(omega: np.ndarray) -> np.ndarray:
+        if parent_boundary_dims:
+            omega_tensor = omega.reshape(*parent_boundary_dims, -1)
+            omega_labels = list(parent_boundary_labels) + [sample_label]
+        else:
+            omega_tensor = omega.reshape(-1)
+            omega_labels = [sample_label]
+        res = oe.contract(
+            *left_args,
+            *right_args,
+            omega_tensor,
+            omega_labels,
+            [rank_label_left, rank_label_right, sample_label],
+            optimize="greedy",
+        )
+        return res.reshape(left.rank * right.rank, -1)
+
+    return apply_A, apply_AT, apply_B, apply_BT
 
 
 def merge_states(
@@ -126,6 +190,7 @@ def merge_states(
     compress_min_rank_product: int = 0,
     compress_max_exact_size: int = 0,
     compress_min_saving_ratio: float = 0.0,
+    implicit_merge_sketch: bool = True,
     rng: np.random.Generator | None = None,
 ) -> tuple[SeparatorState, MergeInfo]:
     open_labels = list(left.open_labels) + list(right.open_labels)
@@ -135,14 +200,7 @@ def merge_states(
 
     rL = left.rank
     rR = right.rank
-
-    A_outer = np.tensordot(left.A, right.A, axes=0)
-    num_openL = len(left.open_dims)
-    num_openR = len(right.open_dims)
-    perm = list(range(num_openL)) + list(range(num_openL + 1, num_openL + 1 + num_openR)) + [num_openL, num_openL + 1 + num_openR]
-    A_outer = np.transpose(A_outer, perm)
-    A_mat = A_outer.reshape(int(np.prod(open_dims)) if open_dims else 1, rL * rR)
-
+    open_flat = int(np.prod(open_dims)) if open_dims else 1
     B_L = left.B.reshape(rL) if len(left.boundary_labels) == 0 else left.B
     B_R = right.B.reshape(rR) if len(right.boundary_labels) == 0 else right.B
     rank_label_left = -1
@@ -158,12 +216,10 @@ def merge_states(
     output_labels = list(parent_boundary_labels) + [rank_label_left, rank_label_right]
     left_args = [B_L, [rank_label_left]] if len(left.boundary_labels) == 0 else [B_L, left_labels]
     right_args = [B_R, [rank_label_right]] if len(right.boundary_labels) == 0 else [B_R, right_labels]
-    C = oe.contract(*left_args, *right_args, output_labels, optimize="greedy")
-    B_mat = C.reshape(int(np.prod(parent_boundary_dims)) if parent_boundary_dims else 1, rL * rR)
-
-    full_rank = int(A_mat.shape[1])
-    exact_size = int((A_mat.shape[0] + B_mat.shape[0]) * full_rank)
-    estimated_cost = int(A_mat.shape[0] * A_mat.shape[1] + B_mat.shape[0] * B_mat.shape[1])
+    boundary_flat = int(np.prod(parent_boundary_dims)) if parent_boundary_dims else 1
+    full_rank = int(rL * rR)
+    exact_size = int((open_flat + boundary_flat) * full_rank)
+    estimated_cost = int(open_flat * full_rank + boundary_flat * full_rank)
     merge_info = _decide_merge_rank(
         full_rank=full_rank,
         exact_size=exact_size,
@@ -174,15 +230,56 @@ def merge_states(
         compress_max_exact_size=int(compress_max_exact_size),
         compress_min_saving_ratio=float(compress_min_saving_ratio),
     )
-    factors = compress_from_factors(
-        A_mat,
-        B_mat,
-        target_rank=merge_info.used_rank,
-        randomized=randomized,
-        oversample=oversample,
-        n_power_iter=n_power_iter,
-        rng=rng,
+    use_implicit_path = bool(
+        merge_info.compressed
+        and randomized
+        and bool(implicit_merge_sketch)
     )
+    if use_implicit_path:
+        apply_A, apply_AT, apply_B, apply_BT = _make_merge_linear_ops(
+            left,
+            right,
+            left_args=left_args,
+            right_args=right_args,
+            parent_boundary_labels=parent_boundary_labels,
+            parent_boundary_dims=parent_boundary_dims,
+            rank_label_left=rank_label_left,
+            rank_label_right=rank_label_right,
+        )
+        factors = compress_from_implicit_factors(
+            num_rows=open_flat,
+            num_cols=boundary_flat,
+            latent_rank=full_rank,
+            apply_A=apply_A,
+            apply_AT=apply_AT,
+            apply_B=apply_B,
+            apply_BT=apply_BT,
+            target_rank=merge_info.used_rank,
+            randomized=randomized,
+            oversample=oversample,
+            n_power_iter=n_power_iter,
+            rng=rng,
+        )
+        merge_info.path = "implicit_randomized"
+    else:
+        A_outer = np.tensordot(left.A, right.A, axes=0)
+        num_openL = len(left.open_dims)
+        num_openR = len(right.open_dims)
+        perm = list(range(num_openL)) + list(range(num_openL + 1, num_openL + 1 + num_openR)) + [num_openL, num_openL + 1 + num_openR]
+        A_outer = np.transpose(A_outer, perm)
+        A_mat = A_outer.reshape(open_flat, full_rank)
+        C = oe.contract(*left_args, *right_args, output_labels, optimize="greedy")
+        B_mat = C.reshape(boundary_flat, full_rank)
+        factors = compress_from_factors(
+            A_mat,
+            B_mat,
+            target_rank=merge_info.used_rank,
+            randomized=randomized,
+            oversample=oversample,
+            n_power_iter=n_power_iter,
+            rng=rng,
+        )
+        merge_info.path = "explicit"
     r = factors.left.shape[-1]
     A_new = factors.left.reshape(*open_dims, r) if open_dims else factors.left.reshape(r)
     if parent_boundary_dims:

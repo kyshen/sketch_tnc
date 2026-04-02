@@ -44,6 +44,7 @@ class MethodConfig:
     compress_min_rank_product: int = 4
     compress_max_exact_size: int = 256
     compress_min_saving_ratio: float = 0.1
+    implicit_merge_sketch: bool = True
     adaptive_refine: bool = False
     refine_tol: float = 1e-3
     max_refine_steps: int = 0

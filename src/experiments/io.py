@@ -38,6 +38,8 @@ PREFERRED_SUMMARY_FIELDS = [
     "num_cached_states",
     "num_exact_merges",
     "num_compressed_merges",
+    "num_implicit_merge_sketches",
+    "num_explicit_merge_compressions",
     "skipped_small_rank_merges",
     "skipped_small_state_merges",
     "skipped_low_saving_merges",
