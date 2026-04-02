@@ -152,7 +152,7 @@ def _preset_cases(preset: str) -> list[BenchmarkCase]:
 
 def build_benchmark_plan(preset: str) -> list[tuple[BenchmarkCase, BenchmarkVariant]]:
     if preset == "rank_sweep":
-        variants = _rank_sweep_variants((2, 4, 6, 8))
+        variants = _rank_sweep_variants((2, 4, 6, 8, 12, 16, 24))
     else:
         variants = _default_variants()
     return [(case, variant) for case in _preset_cases(preset if preset != "rank_sweep" else "m4_probe") for variant in variants]
