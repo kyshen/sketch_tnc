@@ -51,6 +51,12 @@ Aggregate a directory of runs into CSV and JSONL summaries:
 python -m src.experiments.aggregate outputs/paper
 ```
 
+Run a first benchmark suite comparing exact, explicit BOSS, and implicit-sketch BOSS:
+
+```bash
+python -m src.experiments.benchmark --preset m4_probe
+```
+
 Each run directory includes:
 
 - `state.mat`
