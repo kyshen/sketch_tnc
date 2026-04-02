@@ -74,6 +74,34 @@ def _default_variants() -> list[BenchmarkVariant]:
     ]
 
 
+def _rank_sweep_variants(ranks: Iterable[int]) -> list[BenchmarkVariant]:
+    variants: list[BenchmarkVariant] = [BenchmarkVariant("exact", ("method=exact",))]
+    for rank in ranks:
+        variants.append(
+            BenchmarkVariant(
+                f"boss_selective_explicit_r{rank}",
+                (
+                    "method=boss",
+                    f"method.target_rank={int(rank)}",
+                    f"method.max_rank={max(int(rank), 8)}",
+                    "method.implicit_merge_sketch=false",
+                ),
+            )
+        )
+        variants.append(
+            BenchmarkVariant(
+                f"boss_selective_implicit_r{rank}",
+                (
+                    "method=boss",
+                    f"method.target_rank={int(rank)}",
+                    f"method.max_rank={max(int(rank), 8)}",
+                    "method.implicit_merge_sketch=true",
+                ),
+            )
+        )
+    return variants
+
+
 def _preset_cases(preset: str) -> list[BenchmarkCase]:
     common = (
         "task.compute_exact_reference=true",
@@ -123,7 +151,11 @@ def _preset_cases(preset: str) -> list[BenchmarkCase]:
 
 
 def build_benchmark_plan(preset: str) -> list[tuple[BenchmarkCase, BenchmarkVariant]]:
-    return [(case, variant) for case in _preset_cases(preset) for variant in _default_variants()]
+    if preset == "rank_sweep":
+        variants = _rank_sweep_variants((2, 4, 6, 8))
+    else:
+        variants = _default_variants()
+    return [(case, variant) for case in _preset_cases(preset if preset != "rank_sweep" else "m4_probe") for variant in variants]
 
 
 def _run_single(
