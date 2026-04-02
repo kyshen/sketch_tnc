@@ -234,6 +234,7 @@ def merge_states(
         merge_info.compressed
         and randomized
         and bool(implicit_merge_sketch)
+        and merge_info.used_rank < min(open_flat, boundary_flat)
     )
     if use_implicit_path:
         apply_A, apply_AT, apply_B, apply_BT = _make_merge_linear_ops(

@@ -1,9 +1,8 @@
-hydra:
-  run:
-    dir: outputs/${experiment.group}/${experiment.name}/${now:%Y-%m-%d_%H-%M-%S}
-  sweep:
-    dir: multirun/${experiment.group}/${experiment.name}/${now:%Y-%m-%d_%H-%M-%S}
-    subdir: ${hydra.job.num}
-  output_subdir: .hydra
-  job:
-    chdir: false
+run:
+  dir: outputs/${experiment.group}/${experiment.name}/${now:%Y-%m-%d_%H-%M-%S}
+sweep:
+  dir: multirun/${experiment.group}/${experiment.name}/${now:%Y-%m-%d_%H-%M-%S}
+  subdir: ${hydra.job.num}
+output_subdir: .hydra
+job:
+  chdir: false
