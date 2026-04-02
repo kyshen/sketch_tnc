@@ -1,0 +1,10 @@
+defaults:
+  - task: materialize
+  - data: ring
+  - method: boss
+  - block: default
+  - experiment: default
+  - hydra: default
+  - _self_
+
+seed: 0

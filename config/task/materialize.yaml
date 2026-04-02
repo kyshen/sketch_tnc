@@ -1,0 +1,5 @@
+_target_: src.tasks.MaterializeTask
+name: materialize
+log_level: 1
+compute_exact_reference: true
+save_output_dense: true

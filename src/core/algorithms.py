@@ -49,7 +49,7 @@ def materialize_exact(tn: TensorNetwork, blocks: List[OutputBlock], optimize: st
     return MaterializationResult(dense=dense, contract_time_sec=t_contract, emit_time_sec=t_emit, meta={"num_blocks": len(blocks)})
 
 
-def _leaf_state(tn: TensorNetwork, part: PartitionNode, slice_map, cfg) -> SeparatorState:
+def _leaf_state(tn: TensorNetwork, part: PartitionNode, slice_map, cfg, rng: np.random.Generator | None = None) -> SeparatorState:
     nid = next(iter(part.node_ids))
     output_labels = list(part.open_labels) + list(part.boundary_labels)
     T = tn.contract_subnetwork([nid], output_labels, slice_map=slice_map, optimize=getattr(cfg, "optimize", "greedy"))
@@ -68,15 +68,16 @@ def _leaf_state(tn: TensorNetwork, part: PartitionNode, slice_map, cfg) -> Separ
         randomized=bool(getattr(cfg, "randomized", True)),
         oversample=int(getattr(cfg, "oversample", 4)),
         n_power_iter=int(getattr(cfg, "n_power_iter", 1)),
+        rng=rng,
     )
 
 
-def _build_state(tn: TensorNetwork, part: PartitionNode, slice_map, cfg) -> SeparatorState:
+def _build_state(tn: TensorNetwork, part: PartitionNode, slice_map, cfg, rng: np.random.Generator | None = None) -> SeparatorState:
     if part.is_leaf:
-        return _leaf_state(tn, part, slice_map, cfg)
+        return _leaf_state(tn, part, slice_map, cfg, rng=rng)
     left, right = part.children
-    s_left = _build_state(tn, left, slice_map, cfg)
-    s_right = _build_state(tn, right, slice_map, cfg)
+    s_left = _build_state(tn, left, slice_map, cfg, rng=rng)
+    s_right = _build_state(tn, right, slice_map, cfg, rng=rng)
     rank = min(int(getattr(cfg, "target_rank", 1)), int(getattr(cfg, "max_rank", getattr(cfg, "target_rank", 1))))
     return merge_states(
         s_left,
@@ -89,6 +90,7 @@ def _build_state(tn: TensorNetwork, part: PartitionNode, slice_map, cfg) -> Sepa
         oversample=int(getattr(cfg, "oversample", 4)),
         n_power_iter=int(getattr(cfg, "n_power_iter", 1)),
         selective_threshold=int(getattr(cfg, "selective_threshold", 0)),
+        rng=rng,
     )
 
 
@@ -100,7 +102,13 @@ def _state_to_dense(state: SeparatorState) -> np.ndarray:
     return np.tensordot(state.A, state.B, axes=([-1], [0]))
 
 
-def _maybe_refine_block(tn: TensorNetwork, block: OutputBlock, approx_block: np.ndarray, cfg) -> tuple[np.ndarray, int]:
+def _maybe_refine_block(
+    tn: TensorNetwork,
+    block: OutputBlock,
+    approx_block: np.ndarray,
+    cfg,
+    rng: np.random.Generator | None = None,
+) -> tuple[np.ndarray, int]:
     if not bool(getattr(cfg, "adaptive_refine", False)):
         return approx_block, int(getattr(cfg, "target_rank", 1))
     target_rank = int(getattr(cfg, "target_rank", 1))
@@ -120,7 +128,7 @@ def _maybe_refine_block(tn: TensorNetwork, block: OutputBlock, approx_block: np.
         local_cfg = copy.deepcopy(cfg)
         setattr(local_cfg, "target_rank", target_rank)
         part = build_partition_tree(tn)
-        state = _build_state(tn, part, block.slice_map, local_cfg)
+        state = _build_state(tn, part, block.slice_map, local_cfg, rng=rng)
         current = _state_to_dense(state)
     return current, target_rank
 
@@ -129,6 +137,7 @@ def materialize_boss(tn: TensorNetwork, blocks: List[OutputBlock], cfg) -> BossR
     import time
 
     part = build_partition_tree(tn)
+    run_rng = np.random.default_rng(int(getattr(cfg, "seed", 0)))
     dense = np.zeros(tn.output_shape, dtype=np.float64)
     t_contract = 0.0
     t_emit = 0.0
@@ -138,15 +147,16 @@ def materialize_boss(tn: TensorNetwork, blocks: List[OutputBlock], cfg) -> BossR
     suffix_labels = tn.open_label_order[len(block_labels):]
 
     for block in blocks:
+        block_rng = np.random.default_rng(int(run_rng.integers(0, 2**32 - 1)))
         t0 = time.perf_counter()
-        state = _build_state(tn, part, block.slice_map, cfg)
+        state = _build_state(tn, part, block.slice_map, cfg, rng=block_rng)
         perm = [state.open_labels.index(lbl) for lbl in tn.open_label_order]
         block_tensor = _state_to_dense(state)
         if list(range(len(perm))) != perm:
             block_tensor = np.transpose(block_tensor, perm)
         if bool(getattr(cfg, "adaptive_refine", False)):
             old_rank = int(getattr(cfg, "target_rank", 1))
-            block_tensor, used_rank = _maybe_refine_block(tn, block, block_tensor, cfg)
+            block_tensor, used_rank = _maybe_refine_block(tn, block, block_tensor, cfg, rng=block_rng)
             if used_rank != old_rank:
                 refined_blocks += 1
             used_ranks.append(int(used_rank))

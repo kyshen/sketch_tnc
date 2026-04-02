@@ -1,0 +1,9 @@
+_target_: src.data.GraphTNData
+name: random_connected
+generator: random_connected
+num_nodes: 6
+phys_dim: 3
+bond_dim: 4
+open_legs_per_node: 1
+edge_prob: 0.45
+seed: ${seed}

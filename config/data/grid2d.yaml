@@ -1,0 +1,11 @@
+_target_: src.data.GraphTNData
+name: grid2d
+generator: grid2d
+num_nodes: 6
+phys_dim: 3
+bond_dim: 4
+open_legs_per_node: 1
+grid_shape:
+  - 2
+  - 3
+seed: ${seed}

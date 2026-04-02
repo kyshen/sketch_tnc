@@ -9,6 +9,10 @@ class LowRankFactors:
     right: np.ndarray
 
 
+def _resolve_rng(rng: np.random.Generator | None) -> np.random.Generator:
+    return rng if rng is not None else np.random.default_rng()
+
+
 def orth(x: np.ndarray) -> np.ndarray:
     if x.size == 0:
         return x
@@ -16,7 +20,14 @@ def orth(x: np.ndarray) -> np.ndarray:
     return q
 
 
-def compress_matrix(M: np.ndarray, target_rank: int, randomized: bool = True, oversample: int = 4, n_power_iter: int = 1) -> LowRankFactors:
+def compress_matrix(
+    M: np.ndarray,
+    target_rank: int,
+    randomized: bool = True,
+    oversample: int = 4,
+    n_power_iter: int = 1,
+    rng: np.random.Generator | None = None,
+) -> LowRankFactors:
     m, n = M.shape
     if target_rank <= 0 or target_rank >= min(m, n):
         U, s, Vt = np.linalg.svd(M, full_matrices=False)
@@ -26,7 +37,7 @@ def compress_matrix(M: np.ndarray, target_rank: int, randomized: bool = True, ov
         U, s, Vt = np.linalg.svd(M, full_matrices=False)
         r = min(target_rank, len(s))
         return LowRankFactors(left=U[:, :r] * s[:r], right=Vt[:r, :].T)
-    rng = np.random.default_rng()
+    rng = _resolve_rng(rng)
     l = min(n, max(target_rank + oversample, target_rank + 1))
     Omega = rng.standard_normal((n, l))
     Y = M @ Omega
@@ -40,7 +51,15 @@ def compress_matrix(M: np.ndarray, target_rank: int, randomized: bool = True, ov
     return LowRankFactors(left=U * s[:r], right=Vt[:r, :].T)
 
 
-def compress_from_factors(A: np.ndarray, B: np.ndarray, target_rank: int, randomized: bool = True, oversample: int = 4, n_power_iter: int = 1) -> LowRankFactors:
+def compress_from_factors(
+    A: np.ndarray,
+    B: np.ndarray,
+    target_rank: int,
+    randomized: bool = True,
+    oversample: int = 4,
+    n_power_iter: int = 1,
+    rng: np.random.Generator | None = None,
+) -> LowRankFactors:
     m, ra = A.shape
     n, rb = B.shape
     assert ra == rb
@@ -56,7 +75,7 @@ def compress_from_factors(A: np.ndarray, B: np.ndarray, target_rank: int, random
         left = Qa @ U[:, :r] * s[:r]
         right = Qb @ Vt[:r, :].T
         return LowRankFactors(left=left, right=right)
-    rng = np.random.default_rng()
+    rng = _resolve_rng(rng)
     l = max(target_rank + oversample, target_rank + 1)
     Omega = rng.standard_normal((n, l))
     Y = A @ (B.T @ Omega)

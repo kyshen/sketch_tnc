@@ -1,0 +1,5 @@
+_target_: src.block.OutputBlocker
+name: default
+enabled: true
+block_labels: 2
+chunk_size: 1

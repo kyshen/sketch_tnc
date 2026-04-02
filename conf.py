@@ -137,7 +137,6 @@ class Config:
     ])
 
     exp: str = MISSING
-    subexp: str = MISSING
     seed: int = 0
     task: TaskCfg = MISSING
     data: DataCfg = MISSING
@@ -145,9 +144,9 @@ class Config:
     block: BlockCfg = MISSING
 
     hydra: HydraConf = field(default_factory=lambda: HydraConf(
-        run=RunDir(dir="outputs/${exp}/${subexp}/${now:%Y-%m-%d_%H-%M-%S}"),
+        run=RunDir(dir="outputs/${exp}/${now:%Y-%m-%d_%H-%M-%S}"),
         sweep=SweepDir(
-            dir="multirun/${exp}/${subexp}/${now:%Y-%m-%d_%H-%M-%S}",
+            dir="multirun/${exp}/${now:%Y-%m-%d_%H-%M-%S}",
             subdir="${hydra.job.num}",
         ),
         output_subdir=".hydra",

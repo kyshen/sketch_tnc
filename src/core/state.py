@@ -42,11 +42,29 @@ def exact_state_from_tensor(T: np.ndarray, open_labels: Sequence[int], open_dims
     return SeparatorState(list(open_labels), list(open_dims), list(boundary_labels), list(boundary_dims), A, B)
 
 
-def compressed_state_from_tensor(T: np.ndarray, open_labels: Sequence[int], open_dims: Sequence[int], boundary_labels: Sequence[int], boundary_dims: Sequence[int], target_rank: int, randomized: bool = True, oversample: int = 4, n_power_iter: int = 1) -> SeparatorState:
+def compressed_state_from_tensor(
+    T: np.ndarray,
+    open_labels: Sequence[int],
+    open_dims: Sequence[int],
+    boundary_labels: Sequence[int],
+    boundary_dims: Sequence[int],
+    target_rank: int,
+    randomized: bool = True,
+    oversample: int = 4,
+    n_power_iter: int = 1,
+    rng: np.random.Generator | None = None,
+) -> SeparatorState:
     open_flat = int(np.prod(open_dims)) if open_dims else 1
     boundary_flat = int(np.prod(boundary_dims)) if boundary_dims else 1
     M = T.reshape(open_flat, boundary_flat)
-    factors = compress_matrix(M, target_rank=target_rank, randomized=randomized, oversample=oversample, n_power_iter=n_power_iter)
+    factors = compress_matrix(
+        M,
+        target_rank=target_rank,
+        randomized=randomized,
+        oversample=oversample,
+        n_power_iter=n_power_iter,
+        rng=rng,
+    )
     r = factors.left.shape[-1]
     A = factors.left.reshape(*open_dims, r) if open_dims else factors.left.reshape(r)
     if boundary_dims:
@@ -56,7 +74,19 @@ def compressed_state_from_tensor(T: np.ndarray, open_labels: Sequence[int], open
     return SeparatorState(list(open_labels), list(open_dims), list(boundary_labels), list(boundary_dims), A, B)
 
 
-def merge_states(left: SeparatorState, right: SeparatorState, cut_labels: Sequence[int], parent_boundary_labels: Sequence[int], label_dims: Dict[int, int], target_rank: int, randomized: bool = True, oversample: int = 4, n_power_iter: int = 1, selective_threshold: int = 0) -> SeparatorState:
+def merge_states(
+    left: SeparatorState,
+    right: SeparatorState,
+    cut_labels: Sequence[int],
+    parent_boundary_labels: Sequence[int],
+    label_dims: Dict[int, int],
+    target_rank: int,
+    randomized: bool = True,
+    oversample: int = 4,
+    n_power_iter: int = 1,
+    selective_threshold: int = 0,
+    rng: np.random.Generator | None = None,
+) -> SeparatorState:
     open_labels = list(left.open_labels) + list(right.open_labels)
     open_dims = list(left.open_dims) + list(right.open_dims)
     parent_boundary_labels = list(parent_boundary_labels)
@@ -100,6 +130,7 @@ def merge_states(left: SeparatorState, right: SeparatorState, cut_labels: Sequen
         randomized=randomized,
         oversample=oversample,
         n_power_iter=n_power_iter,
+        rng=rng,
     )
     r = factors.left.shape[-1]
     A_new = factors.left.reshape(*open_dims, r) if open_dims else factors.left.reshape(r)

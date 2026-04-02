@@ -1,0 +1,14 @@
+_target_: src.methods.BOSSMaterialization
+name: boss
+optimize: greedy
+target_rank: 2
+max_rank: 16
+randomized: true
+oversample: 4
+n_power_iter: 1
+selective_threshold: 0
+adaptive_refine: false
+refine_tol: 0.001
+max_refine_steps: 0
+rank_growth_factor: 2
+seed: ${seed}
