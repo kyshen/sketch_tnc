@@ -1,0 +1,20 @@
+[
+  {
+    "reference": "exact",
+    "exact_contract_time_sec": 0.0029403889999457533,
+    "exact_emit_time_sec": 7.30500005374779e-06
+  },
+  {
+    "method": "boss",
+    "num_blocks": 4,
+    "contract_time_sec": 0.004729315999952632,
+    "emit_time_sec": 7.828000207155128e-06,
+    "target_rank": 2,
+    "meta": {
+      "num_blocks": 4,
+      "refined_blocks": 0,
+      "mean_rank": 2.0,
+      "max_rank": 2
+    }
+  }
+]

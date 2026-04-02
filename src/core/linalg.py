@@ -1,0 +1,70 @@
+from dataclasses import dataclass
+
+import numpy as np
+
+
+@dataclass
+class LowRankFactors:
+    left: np.ndarray
+    right: np.ndarray
+
+
+def orth(x: np.ndarray) -> np.ndarray:
+    if x.size == 0:
+        return x
+    q, _ = np.linalg.qr(x, mode="reduced")
+    return q
+
+
+def compress_matrix(M: np.ndarray, target_rank: int, randomized: bool = True, oversample: int = 4, n_power_iter: int = 1) -> LowRankFactors:
+    m, n = M.shape
+    if target_rank <= 0 or target_rank >= min(m, n):
+        U, s, Vt = np.linalg.svd(M, full_matrices=False)
+        r = min(m, n)
+        return LowRankFactors(left=U[:, :r] * s[:r], right=Vt[:r, :].T)
+    if not randomized:
+        U, s, Vt = np.linalg.svd(M, full_matrices=False)
+        r = min(target_rank, len(s))
+        return LowRankFactors(left=U[:, :r] * s[:r], right=Vt[:r, :].T)
+    rng = np.random.default_rng()
+    l = min(n, max(target_rank + oversample, target_rank + 1))
+    Omega = rng.standard_normal((n, l))
+    Y = M @ Omega
+    for _ in range(max(0, int(n_power_iter))):
+        Y = M @ (M.T @ Y)
+    Q = orth(Y)
+    B = Q.T @ M
+    Uh, s, Vt = np.linalg.svd(B, full_matrices=False)
+    r = min(target_rank, len(s))
+    U = Q @ Uh[:, :r]
+    return LowRankFactors(left=U * s[:r], right=Vt[:r, :].T)
+
+
+def compress_from_factors(A: np.ndarray, B: np.ndarray, target_rank: int, randomized: bool = True, oversample: int = 4, n_power_iter: int = 1) -> LowRankFactors:
+    m, ra = A.shape
+    n, rb = B.shape
+    assert ra == rb
+    r0 = ra
+    if target_rank <= 0 or target_rank >= r0:
+        return LowRankFactors(left=A, right=B)
+    if not randomized:
+        Qa, Ra = np.linalg.qr(A, mode="reduced")
+        Qb, Rb = np.linalg.qr(B, mode="reduced")
+        core = Ra @ Rb.T
+        U, s, Vt = np.linalg.svd(core, full_matrices=False)
+        r = min(target_rank, len(s))
+        left = Qa @ U[:, :r] * s[:r]
+        right = Qb @ Vt[:r, :].T
+        return LowRankFactors(left=left, right=right)
+    rng = np.random.default_rng()
+    l = max(target_rank + oversample, target_rank + 1)
+    Omega = rng.standard_normal((n, l))
+    Y = A @ (B.T @ Omega)
+    for _ in range(max(0, int(n_power_iter))):
+        Y = A @ (B.T @ (B @ (A.T @ Y)))
+    Q = orth(Y)
+    small = (Q.T @ A) @ B.T
+    Uh, s, Vt = np.linalg.svd(small, full_matrices=False)
+    r = min(target_rank, len(s))
+    U = Q @ Uh[:, :r]
+    return LowRankFactors(left=U * s[:r], right=Vt[:r, :].T)
