@@ -1,8 +1,11 @@
 import json
 
+import numpy as np
+
 from omegaconf import OmegaConf
 
 from src.config import validate_config
+from src.core.state import SeparatorState, merge_states
 from src.experiments.aggregate import aggregate_runs
 
 
@@ -45,3 +48,75 @@ def test_aggregate_runs_writes_summary_files(tmp_path):
     csv_text = outputs["csv"].read_text(encoding="utf-8")
     assert "reference_available" in csv_text
     assert "cache_hit_rate" in csv_text
+
+
+def test_merge_states_can_skip_compression_for_small_merges():
+    left = SeparatorState(
+        open_labels=[0],
+        open_dims=[2],
+        boundary_labels=[10],
+        boundary_dims=[2],
+        A=np.array([[1.0, 0.0], [0.0, 1.0]]),
+        B=np.array([[1.0, 2.0], [3.0, 4.0]]),
+    )
+    right = SeparatorState(
+        open_labels=[1],
+        open_dims=[2],
+        boundary_labels=[10],
+        boundary_dims=[2],
+        A=np.array([[1.0, 1.0], [0.5, -0.5]]),
+        B=np.array([[2.0, 1.0], [0.0, 1.0]]),
+    )
+
+    state, info = merge_states(
+        left,
+        right,
+        cut_labels=[10],
+        parent_boundary_labels=[],
+        label_dims={10: 2},
+        target_rank=1,
+        randomized=False,
+        compress_min_rank_product=8,
+        compress_max_exact_size=0,
+        compress_min_saving_ratio=0.0,
+    )
+
+    assert info.compressed is False
+    assert info.reason == "rank_product_too_small"
+    assert state.rank == 4
+
+
+def test_merge_states_compresses_when_savings_are_large():
+    left = SeparatorState(
+        open_labels=[0],
+        open_dims=[2],
+        boundary_labels=[10],
+        boundary_dims=[2],
+        A=np.array([[1.0, 0.0], [0.0, 1.0]]),
+        B=np.array([[1.0, 2.0], [3.0, 4.0]]),
+    )
+    right = SeparatorState(
+        open_labels=[1],
+        open_dims=[2],
+        boundary_labels=[10],
+        boundary_dims=[2],
+        A=np.array([[1.0, 1.0], [0.5, -0.5]]),
+        B=np.array([[2.0, 1.0], [0.0, 1.0]]),
+    )
+
+    state, info = merge_states(
+        left,
+        right,
+        cut_labels=[10],
+        parent_boundary_labels=[],
+        label_dims={10: 2},
+        target_rank=1,
+        randomized=False,
+        compress_min_rank_product=0,
+        compress_max_exact_size=0,
+        compress_min_saving_ratio=0.1,
+    )
+
+    assert info.compressed is True
+    assert info.reason == "compressed"
+    assert state.rank == 1

@@ -29,6 +29,17 @@ class SeparatorState:
         return M, self.open_labels, self.boundary_labels
 
 
+@dataclass
+class MergeInfo:
+    compressed: bool
+    full_rank: int
+    used_rank: int
+    exact_size: int
+    compressed_size: int
+    saving_ratio: float
+    reason: str
+
+
 def exact_state_from_tensor(T: np.ndarray, open_labels: Sequence[int], open_dims: Sequence[int], boundary_labels: Sequence[int], boundary_dims: Sequence[int]) -> SeparatorState:
     open_flat = int(np.prod(open_dims)) if open_dims else 1
     boundary_flat = int(np.prod(boundary_dims)) if boundary_dims else 1
@@ -74,6 +85,33 @@ def compressed_state_from_tensor(
     return SeparatorState(list(open_labels), list(open_dims), list(boundary_labels), list(boundary_dims), A, B)
 
 
+def _decide_merge_rank(
+    *,
+    full_rank: int,
+    exact_size: int,
+    target_rank: int,
+    selective_threshold: int,
+    estimated_cost: int,
+    compress_min_rank_product: int,
+    compress_max_exact_size: int,
+    compress_min_saving_ratio: float,
+) -> MergeInfo:
+    if target_rank <= 0 or target_rank >= full_rank:
+        return MergeInfo(False, int(full_rank), int(full_rank), int(exact_size), int(exact_size), 0.0, "target_rank_not_reducing")
+    used_rank = min(int(target_rank), int(full_rank))
+    compressed_size = int(exact_size * used_rank / max(1, full_rank))
+    saving_ratio = float(1.0 - (compressed_size / max(1, exact_size)))
+    if selective_threshold and estimated_cost < int(selective_threshold):
+        return MergeInfo(False, int(full_rank), int(full_rank), int(exact_size), int(exact_size), 0.0, "below_selective_threshold")
+    if compress_min_rank_product > 0 and full_rank < int(compress_min_rank_product):
+        return MergeInfo(False, int(full_rank), int(full_rank), int(exact_size), int(exact_size), 0.0, "rank_product_too_small")
+    if compress_max_exact_size > 0 and exact_size <= int(compress_max_exact_size):
+        return MergeInfo(False, int(full_rank), int(full_rank), int(exact_size), int(exact_size), saving_ratio, "exact_state_small_enough")
+    if saving_ratio < float(compress_min_saving_ratio):
+        return MergeInfo(False, int(full_rank), int(full_rank), int(exact_size), int(exact_size), saving_ratio, "saving_ratio_too_small")
+    return MergeInfo(True, int(full_rank), int(used_rank), int(exact_size), int(compressed_size), saving_ratio, "compressed")
+
+
 def merge_states(
     left: SeparatorState,
     right: SeparatorState,
@@ -85,8 +123,11 @@ def merge_states(
     oversample: int = 4,
     n_power_iter: int = 1,
     selective_threshold: int = 0,
+    compress_min_rank_product: int = 0,
+    compress_max_exact_size: int = 0,
+    compress_min_saving_ratio: float = 0.0,
     rng: np.random.Generator | None = None,
-) -> SeparatorState:
+) -> tuple[SeparatorState, MergeInfo]:
     open_labels = list(left.open_labels) + list(right.open_labels)
     open_dims = list(left.open_dims) + list(right.open_dims)
     parent_boundary_labels = list(parent_boundary_labels)
@@ -120,13 +161,23 @@ def merge_states(
     C = oe.contract(*left_args, *right_args, output_labels, optimize="greedy")
     B_mat = C.reshape(int(np.prod(parent_boundary_dims)) if parent_boundary_dims else 1, rL * rR)
 
+    full_rank = int(A_mat.shape[1])
+    exact_size = int((A_mat.shape[0] + B_mat.shape[0]) * full_rank)
     estimated_cost = int(A_mat.shape[0] * A_mat.shape[1] + B_mat.shape[0] * B_mat.shape[1])
-    if selective_threshold and estimated_cost < int(selective_threshold):
-        target_rank = A_mat.shape[1]
+    merge_info = _decide_merge_rank(
+        full_rank=full_rank,
+        exact_size=exact_size,
+        target_rank=int(target_rank),
+        selective_threshold=int(selective_threshold),
+        estimated_cost=estimated_cost,
+        compress_min_rank_product=int(compress_min_rank_product),
+        compress_max_exact_size=int(compress_max_exact_size),
+        compress_min_saving_ratio=float(compress_min_saving_ratio),
+    )
     factors = compress_from_factors(
         A_mat,
         B_mat,
-        target_rank=target_rank,
+        target_rank=merge_info.used_rank,
         randomized=randomized,
         oversample=oversample,
         n_power_iter=n_power_iter,
@@ -138,7 +189,7 @@ def merge_states(
         B_new = factors.right.reshape(*parent_boundary_dims, r)
     else:
         B_new = factors.right.reshape(r)
-    return SeparatorState(
+    state = SeparatorState(
         open_labels=open_labels,
         open_dims=open_dims,
         boundary_labels=parent_boundary_labels,
@@ -146,3 +197,4 @@ def merge_states(
         A=A_new,
         B=B_new,
     )
+    return state, merge_info

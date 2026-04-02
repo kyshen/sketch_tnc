@@ -41,6 +41,9 @@ class MethodConfig:
     oversample: int = 4
     n_power_iter: int = 1
     selective_threshold: int = 0
+    compress_min_rank_product: int = 4
+    compress_max_exact_size: int = 256
+    compress_min_saving_ratio: float = 0.1
     adaptive_refine: bool = False
     refine_tol: float = 1e-3
     max_refine_steps: int = 0

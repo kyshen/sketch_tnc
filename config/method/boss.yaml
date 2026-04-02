@@ -7,6 +7,9 @@ randomized: true
 oversample: 4
 n_power_iter: 1
 selective_threshold: 0
+compress_min_rank_product: 4
+compress_max_exact_size: 256
+compress_min_saving_ratio: 0.1
 adaptive_refine: false
 refine_tol: 0.001
 max_refine_steps: 0

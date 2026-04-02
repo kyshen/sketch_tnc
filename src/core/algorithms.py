@@ -9,7 +9,7 @@ from src.core.blocking import OutputBlock
 from src.core.cache import SeparatorStateCache, StateCacheKey, make_local_block_key
 from src.core.network import TensorNetwork
 from src.core.partition import PartitionNode, build_partition_tree
-from src.core.state import SeparatorState, compressed_state_from_tensor, exact_state_from_tensor, merge_states
+from src.core.state import MergeInfo, SeparatorState, compressed_state_from_tensor, exact_state_from_tensor, merge_states
 
 
 @dataclass
@@ -33,6 +33,11 @@ class BossRuntimeStats:
     leaf_states_built: int = 0
     internal_states_built: int = 0
     peak_rank: int = 0
+    num_exact_merges: int = 0
+    num_compressed_merges: int = 0
+    skipped_small_rank_merges: int = 0
+    skipped_small_state_merges: int = 0
+    skipped_low_saving_merges: int = 0
 
     def observe(self, state: SeparatorState, *, is_leaf: bool) -> None:
         if is_leaf:
@@ -41,11 +46,28 @@ class BossRuntimeStats:
             self.internal_states_built += 1
         self.peak_rank = max(self.peak_rank, int(state.rank))
 
+    def observe_merge(self, merge_info: MergeInfo) -> None:
+        if merge_info.compressed:
+            self.num_compressed_merges += 1
+            return
+        self.num_exact_merges += 1
+        if merge_info.reason == "rank_product_too_small":
+            self.skipped_small_rank_merges += 1
+        elif merge_info.reason == "exact_state_small_enough":
+            self.skipped_small_state_merges += 1
+        elif merge_info.reason == "saving_ratio_too_small":
+            self.skipped_low_saving_merges += 1
+
     def summary(self) -> Dict[str, int]:
         return {
             "leaf_states_built": int(self.leaf_states_built),
             "internal_states_built": int(self.internal_states_built),
             "peak_rank": int(self.peak_rank),
+            "num_exact_merges": int(self.num_exact_merges),
+            "num_compressed_merges": int(self.num_compressed_merges),
+            "skipped_small_rank_merges": int(self.skipped_small_rank_merges),
+            "skipped_small_state_merges": int(self.skipped_small_state_merges),
+            "skipped_low_saving_merges": int(self.skipped_low_saving_merges),
         }
 
 
@@ -80,6 +102,9 @@ def _cfg_signature(cfg: Any) -> Tuple[Tuple[str, object], ...]:
         "oversample",
         "n_power_iter",
         "selective_threshold",
+        "compress_min_rank_product",
+        "compress_max_exact_size",
+        "compress_min_saving_ratio",
         "optimize",
     )
     return tuple((name, getattr(cfg, name, None)) for name in names)
@@ -159,7 +184,7 @@ def _build_state(
     s_left = _build_state(tn, left, slice_map, cfg, cache=cache, stats=stats, base_seed=base_seed)
     s_right = _build_state(tn, right, slice_map, cfg, cache=cache, stats=stats, base_seed=base_seed)
     rank = min(int(getattr(cfg, "target_rank", 1)), int(getattr(cfg, "max_rank", getattr(cfg, "target_rank", 1))))
-    state = merge_states(
+    state, merge_info = merge_states(
         s_left,
         s_right,
         cut_labels=part.cut_labels,
@@ -170,9 +195,13 @@ def _build_state(
         oversample=int(getattr(cfg, "oversample", 4)),
         n_power_iter=int(getattr(cfg, "n_power_iter", 1)),
         selective_threshold=int(getattr(cfg, "selective_threshold", 0)),
+        compress_min_rank_product=int(getattr(cfg, "compress_min_rank_product", 0)),
+        compress_max_exact_size=int(getattr(cfg, "compress_max_exact_size", 0)),
+        compress_min_saving_ratio=float(getattr(cfg, "compress_min_saving_ratio", 0.0)),
         rng=rng,
     )
     if stats is not None:
+        stats.observe_merge(merge_info)
         stats.observe(state, is_leaf=False)
     if cache is not None:
         cache.put(state_key, state)
