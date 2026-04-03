@@ -108,6 +108,35 @@ def _rank_sweep_variants(ranks: Iterable[int]) -> list[BenchmarkVariant]:
     return variants
 
 
+def _adaptive_schedule_variants() -> list[BenchmarkVariant]:
+    return [
+        BenchmarkVariant(
+            "boss_adaptive_flat",
+            (
+                "method=boss",
+                "method.rank_policy=adaptive",
+                "method.tol_schedule=flat",
+                "method.leaf_tol=0.01",
+                "method.merge_tol=0.02",
+                "method.implicit_merge_sketch=true",
+            ),
+        ),
+        BenchmarkVariant(
+            "boss_adaptive_depth_open",
+            (
+                "method=boss",
+                "method.rank_policy=adaptive",
+                "method.tol_schedule=depth_open",
+                "method.leaf_tol=0.01",
+                "method.merge_tol=0.02",
+                "method.tol_depth_decay=1.5",
+                "method.tol_open_power=0.5",
+                "method.implicit_merge_sketch=true",
+            ),
+        ),
+    ]
+
+
 def _preset_cases(preset: str) -> list[BenchmarkCase]:
     common = (
         "task.compute_exact_reference=true",
@@ -159,9 +188,12 @@ def _preset_cases(preset: str) -> list[BenchmarkCase]:
 def build_benchmark_plan(preset: str) -> list[tuple[BenchmarkCase, BenchmarkVariant]]:
     if preset == "rank_sweep":
         variants = _rank_sweep_variants((2, 4, 6, 8, 12, 16, 24))
+    elif preset == "adaptive_schedule":
+        variants = _adaptive_schedule_variants()
     else:
         variants = _default_variants()
-    return [(case, variant) for case in _preset_cases(preset if preset != "rank_sweep" else "m4_probe") for variant in variants]
+    base_preset = "m4_probe" if preset in {"rank_sweep", "adaptive_schedule"} else preset
+    return [(case, variant) for case in _preset_cases(base_preset) for variant in variants]
 
 
 def _run_single(

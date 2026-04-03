@@ -34,6 +34,7 @@ class BOSSMaterialization(BaseMethod):
             "target_rank": int(self.cfg.get("target_rank", 0)),
             "leaf_tol": float(self.cfg.get("leaf_tol", 0.0)),
             "merge_tol": float(self.cfg.get("merge_tol", 0.0)),
+            "tol_schedule": str(self.cfg.get("tol_schedule", "flat")),
             "meta": self._meta,
         })
 

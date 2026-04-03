@@ -22,6 +22,10 @@ class PartitionNode:
     def node_key(self) -> tuple[int, ...]:
         return tuple(sorted(self.node_ids))
 
+    @property
+    def subtree_size(self) -> int:
+        return len(self.node_ids)
+
 
 def _subtree_boundary_labels(tn: TensorNetwork, node_ids: Set[int]) -> List[int]:
     out: List[int] = []

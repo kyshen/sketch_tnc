@@ -38,6 +38,9 @@ class MethodConfig:
     rank_policy: str = "adaptive"
     leaf_tol: float = 1e-3
     merge_tol: float = 5e-3
+    tol_schedule: str = "depth_open"
+    tol_depth_decay: float = 1.5
+    tol_open_power: float = 0.5
     target_rank: int = 2
     max_rank: int = 16
     randomized: bool = True

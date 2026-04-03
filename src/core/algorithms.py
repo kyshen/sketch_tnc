@@ -53,6 +53,10 @@ class BossRuntimeStats:
     leaf_residual_ratio_count: int = 0
     merge_residual_ratio_sum: float = 0.0
     merge_residual_ratio_count: int = 0
+    leaf_tol_sum: float = 0.0
+    leaf_tol_count: int = 0
+    merge_tol_sum: float = 0.0
+    merge_tol_count: int = 0
 
     def observe(self, state: SeparatorState, *, is_leaf: bool) -> None:
         if is_leaf:
@@ -68,6 +72,10 @@ class BossRuntimeStats:
             self.num_exact_leaves += 1
         self.leaf_residual_ratio_sum += float(residual_ratio)
         self.leaf_residual_ratio_count += 1
+
+    def observe_leaf_tol(self, tol: float) -> None:
+        self.leaf_tol_sum += float(tol)
+        self.leaf_tol_count += 1
 
     def observe_merge(self, merge_info: MergeInfo) -> None:
         self.merge_residual_ratio_sum += float(merge_info.residual_ratio)
@@ -87,6 +95,10 @@ class BossRuntimeStats:
         elif merge_info.reason == "saving_ratio_too_small":
             self.skipped_low_saving_merges += 1
 
+    def observe_merge_tol(self, tol: float) -> None:
+        self.merge_tol_sum += float(tol)
+        self.merge_tol_count += 1
+
     def summary(self) -> Dict[str, int]:
         return {
             "leaf_states_built": int(self.leaf_states_built),
@@ -103,6 +115,8 @@ class BossRuntimeStats:
             "num_compressed_leaves": int(self.num_compressed_leaves),
             "mean_leaf_residual_ratio": float(self.leaf_residual_ratio_sum / self.leaf_residual_ratio_count) if self.leaf_residual_ratio_count else 0.0,
             "mean_merge_residual_ratio": float(self.merge_residual_ratio_sum / self.merge_residual_ratio_count) if self.merge_residual_ratio_count else 0.0,
+            "mean_leaf_tol": float(self.leaf_tol_sum / self.leaf_tol_count) if self.leaf_tol_count else 0.0,
+            "mean_merge_tol": float(self.merge_tol_sum / self.merge_tol_count) if self.merge_tol_count else 0.0,
         }
 
 
@@ -134,6 +148,9 @@ def _cfg_signature(cfg: Any) -> Tuple[Tuple[str, object], ...]:
         "rank_policy",
         "leaf_tol",
         "merge_tol",
+        "tol_schedule",
+        "tol_depth_decay",
+        "tol_open_power",
         "target_rank",
         "max_rank",
         "randomized",
@@ -164,6 +181,50 @@ def _rng_from_state_key(base_seed: int, state_key: StateCacheKey) -> np.random.G
     return np.random.default_rng(seed)
 
 
+def _partition_depth_info(part: PartitionNode, depth: int = 0, out: Dict[tuple[int, ...], tuple[int, int, int]] | None = None) -> Dict[tuple[int, ...], tuple[int, int, int]]:
+    if out is None:
+        out = {}
+    out[part.node_key] = (depth, len(part.open_labels), part.subtree_size)
+    if part.children:
+        for child in part.children:
+            _partition_depth_info(child, depth + 1, out)
+    return out
+
+
+def _max_partition_depth(part: PartitionNode) -> int:
+    if not part.children:
+        return 0
+    return 1 + max(_max_partition_depth(child) for child in part.children)
+
+
+def _scheduled_tol(
+    cfg: Any,
+    *,
+    base_tol: float,
+    part: PartitionNode,
+    depth_info: Dict[tuple[int, ...], tuple[int, int, int]],
+    max_depth: int,
+) -> float:
+    schedule = str(getattr(cfg, "tol_schedule", "flat"))
+    if schedule == "flat":
+        return float(base_tol)
+    depth, open_count, subtree_size = depth_info.get(part.node_key, (0, len(part.open_labels), part.subtree_size))
+    depth_decay = float(getattr(cfg, "tol_depth_decay", 1.5))
+    open_power = float(getattr(cfg, "tol_open_power", 0.5))
+    depth_factor = depth_decay ** float(depth)
+    open_factor = float(max(1, open_count)) ** float(open_power)
+    tol = float(base_tol) * depth_factor / open_factor
+    if schedule == "depth_open":
+        return float(tol)
+    if schedule == "depth_size_open":
+        size_factor = float(max(1, subtree_size)) ** 0.25
+        return float(tol / size_factor)
+    if schedule == "root_strict":
+        strictness = 1.0 + float(max_depth - depth)
+        return float(base_tol / strictness)
+    return float(base_tol)
+
+
 def _leaf_state(
     tn: TensorNetwork,
     part: PartitionNode,
@@ -171,6 +232,7 @@ def _leaf_state(
     cfg,
     rng: np.random.Generator | None = None,
     stats: BossRuntimeStats | None = None,
+    local_leaf_tol: float | None = None,
 ) -> SeparatorState:
     nid = next(iter(part.node_ids))
     output_labels = list(part.open_labels) + list(part.boundary_labels)
@@ -179,13 +241,14 @@ def _leaf_state(
     boundary_dims = [tn.label_dims[l] for l in part.boundary_labels]
     rank_policy = str(getattr(cfg, "rank_policy", "fixed"))
     if rank_policy == "adaptive":
+        tol = float(local_leaf_tol if local_leaf_tol is not None else getattr(cfg, "leaf_tol", 1e-3))
         state, residual_ratio = adaptive_state_from_tensor(
             T,
             part.open_labels,
             open_dims,
             part.boundary_labels,
             boundary_dims,
-            tol=float(getattr(cfg, "leaf_tol", 1e-3)),
+            tol=tol,
             randomized=bool(getattr(cfg, "randomized", True)),
             oversample=int(getattr(cfg, "oversample", 4)),
             n_power_iter=int(getattr(cfg, "n_power_iter", 1)),
@@ -195,6 +258,7 @@ def _leaf_state(
             open_flat = int(np.prod(open_dims)) if open_dims else 1
             boundary_flat = int(np.prod(boundary_dims)) if boundary_dims else 1
             full_rank = min(open_flat, boundary_flat)
+            stats.observe_leaf_tol(tol)
             stats.observe_leaf_choice(compressed=bool(state.rank < full_rank), residual_ratio=float(residual_ratio))
     elif getattr(cfg, "target_rank", 0) <= 0:
         state = exact_state_from_tensor(T, part.open_labels, open_dims, part.boundary_labels, boundary_dims)
@@ -233,6 +297,8 @@ def _build_state(
     cache: SeparatorStateCache | None = None,
     stats: BossRuntimeStats | None = None,
     base_seed: int = 0,
+    depth_info: Dict[tuple[int, ...], tuple[int, int, int]] | None = None,
+    max_depth: int = 0,
 ) -> SeparatorState:
     state_key = _state_cache_key(part, slice_map, cfg)
     if cache is not None:
@@ -241,15 +307,35 @@ def _build_state(
             return cached
     rng = _rng_from_state_key(base_seed, state_key)
     if part.is_leaf:
-        state = _leaf_state(tn, part, slice_map, cfg, rng=rng, stats=stats)
+        local_leaf_tol = None
+        if str(getattr(cfg, "rank_policy", "fixed")) == "adaptive" and depth_info is not None:
+            local_leaf_tol = _scheduled_tol(
+                cfg,
+                base_tol=float(getattr(cfg, "leaf_tol", 1e-3)),
+                part=part,
+                depth_info=depth_info,
+                max_depth=max_depth,
+            )
+        state = _leaf_state(tn, part, slice_map, cfg, rng=rng, stats=stats, local_leaf_tol=local_leaf_tol)
         if cache is not None:
             cache.put(state_key, state)
         return state
     left, right = part.children
-    s_left = _build_state(tn, left, slice_map, cfg, cache=cache, stats=stats, base_seed=base_seed)
-    s_right = _build_state(tn, right, slice_map, cfg, cache=cache, stats=stats, base_seed=base_seed)
+    s_left = _build_state(tn, left, slice_map, cfg, cache=cache, stats=stats, base_seed=base_seed, depth_info=depth_info, max_depth=max_depth)
+    s_right = _build_state(tn, right, slice_map, cfg, cache=cache, stats=stats, base_seed=base_seed, depth_info=depth_info, max_depth=max_depth)
     rank_policy = str(getattr(cfg, "rank_policy", "fixed"))
     rank = min(int(getattr(cfg, "target_rank", 1)), int(getattr(cfg, "max_rank", getattr(cfg, "target_rank", 1))))
+    local_merge_tol = float(getattr(cfg, "merge_tol", 1e-2))
+    if rank_policy == "adaptive" and depth_info is not None:
+        local_merge_tol = _scheduled_tol(
+            cfg,
+            base_tol=float(getattr(cfg, "merge_tol", 1e-2)),
+            part=part,
+            depth_info=depth_info,
+            max_depth=max_depth,
+        )
+        if stats is not None:
+            stats.observe_merge_tol(local_merge_tol)
     state, merge_info = merge_states(
         s_left,
         s_right,
@@ -258,7 +344,7 @@ def _build_state(
         label_dims=tn.label_dims,
         target_rank=rank,
         rank_policy=rank_policy,
-        merge_tol=float(getattr(cfg, "merge_tol", 1e-2)),
+        merge_tol=local_merge_tol,
         randomized=bool(getattr(cfg, "randomized", True)),
         oversample=int(getattr(cfg, "oversample", 4)),
         n_power_iter=int(getattr(cfg, "n_power_iter", 1)),
@@ -332,6 +418,8 @@ def materialize_boss(tn: TensorNetwork, blocks: List[OutputBlock], cfg) -> BossR
     import time
 
     part = build_partition_tree(tn)
+    depth_info = _partition_depth_info(part)
+    max_depth = _max_partition_depth(part)
     cache = SeparatorStateCache(enabled=bool(getattr(cfg, "cache_enabled", True)))
     stats = BossRuntimeStats()
     base_seed = int(getattr(cfg, "seed", 0))
@@ -353,6 +441,8 @@ def materialize_boss(tn: TensorNetwork, blocks: List[OutputBlock], cfg) -> BossR
             cache=cache,
             stats=stats,
             base_seed=base_seed,
+            depth_info=depth_info,
+            max_depth=max_depth,
         )
         perm = [state.open_labels.index(lbl) for lbl in tn.open_label_order]
         block_tensor = _state_to_dense(state)
@@ -369,6 +459,8 @@ def materialize_boss(tn: TensorNetwork, blocks: List[OutputBlock], cfg) -> BossR
                 cache=cache,
                 stats=stats,
                 base_seed=base_seed,
+                depth_info=depth_info,
+                max_depth=max_depth,
             )
             if used_rank != old_rank:
                 refined_blocks += 1
