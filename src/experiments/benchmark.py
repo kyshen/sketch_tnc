@@ -137,6 +137,33 @@ def _adaptive_schedule_variants() -> list[BenchmarkVariant]:
     ]
 
 
+def _adaptive_tuning_variants() -> list[BenchmarkVariant]:
+    specs = [
+        ("flat_loose", "flat", 0.05, 0.10),
+        ("flat_mid", "flat", 0.02, 0.05),
+        ("flat_tight", "flat", 0.01, 0.02),
+        ("depth_open_loose", "depth_open", 0.05, 0.10),
+        ("depth_open_mid", "depth_open", 0.02, 0.05),
+        ("depth_open_tight", "depth_open", 0.01, 0.02),
+    ]
+    variants: list[BenchmarkVariant] = [BenchmarkVariant("exact", ("method=exact",))]
+    for name, schedule, leaf_tol, merge_tol in specs:
+        variants.append(
+            BenchmarkVariant(
+                f"boss_adaptive_{name}",
+                (
+                    "method=boss",
+                    "method.rank_policy=adaptive",
+                    f"method.tol_schedule={schedule}",
+                    f"method.leaf_tol={leaf_tol}",
+                    f"method.merge_tol={merge_tol}",
+                    "method.implicit_merge_sketch=true",
+                ),
+            )
+        )
+    return variants
+
+
 def _preset_cases(preset: str) -> list[BenchmarkCase]:
     common = (
         "task.compute_exact_reference=true",
@@ -182,6 +209,30 @@ def _preset_cases(preset: str) -> list[BenchmarkCase]:
                 + common,
             ),
         ]
+    if preset == "adaptive_large":
+        return [
+            BenchmarkCase(
+                "ring9_p3_b6",
+                (
+                    "data=ring",
+                    "data.num_nodes=9",
+                    "data.phys_dim=3",
+                    "data.bond_dim=6",
+                )
+                + common,
+            ),
+            BenchmarkCase(
+                "random9_p3_b5",
+                (
+                    "data=random_connected",
+                    "data.num_nodes=9",
+                    "data.phys_dim=3",
+                    "data.bond_dim=5",
+                    "data.edge_prob=0.45",
+                )
+                + common,
+            ),
+        ]
     raise ValueError(f"Unknown benchmark preset: {preset}")
 
 
@@ -190,9 +241,11 @@ def build_benchmark_plan(preset: str) -> list[tuple[BenchmarkCase, BenchmarkVari
         variants = _rank_sweep_variants((2, 4, 6, 8, 12, 16, 24))
     elif preset == "adaptive_schedule":
         variants = _adaptive_schedule_variants()
+    elif preset == "adaptive_tuning":
+        variants = _adaptive_tuning_variants()
     else:
         variants = _default_variants()
-    base_preset = "m4_probe" if preset in {"rank_sweep", "adaptive_schedule"} else preset
+    base_preset = "m4_probe" if preset in {"rank_sweep", "adaptive_schedule"} else ("adaptive_large" if preset == "adaptive_tuning" else preset)
     return [(case, variant) for case in _preset_cases(base_preset) for variant in variants]
 
 
