@@ -30,7 +30,10 @@ class BOSSMaterialization(BaseMethod):
             "num_blocks": len(blocks),
             "contract_time_sec": self._contract_time_sec,
             "emit_time_sec": self._emit_time_sec,
+            "rank_policy": str(self.cfg.get("rank_policy", "fixed")),
             "target_rank": int(self.cfg.get("target_rank", 0)),
+            "leaf_tol": float(self.cfg.get("leaf_tol", 0.0)),
+            "merge_tol": float(self.cfg.get("merge_tol", 0.0)),
             "meta": self._meta,
         })
 

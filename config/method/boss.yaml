@@ -1,6 +1,9 @@
 _target_: src.methods.BOSSMaterialization
 name: boss
 optimize: greedy
+rank_policy: adaptive
+leaf_tol: 0.001
+merge_tol: 0.005
 target_rank: 2
 max_rank: 16
 randomized: true

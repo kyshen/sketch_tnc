@@ -23,6 +23,7 @@ def test_validate_config_keeps_global_seed_consistent():
     assert int(validated.seed) == 9
     assert int(validated.data.seed) == 9
     assert int(validated.method.seed) == 9
+    assert str(validated.method.rank_policy) == "adaptive"
 
 
 def test_aggregate_runs_writes_summary_files(tmp_path):
@@ -134,3 +135,39 @@ def test_validate_config_enables_implicit_merge_sketch_by_default():
     })
     validated = validate_config(cfg)
     assert bool(validated.method.implicit_merge_sketch) is True
+
+
+def test_merge_states_adaptive_can_choose_lower_rank():
+    left = SeparatorState(
+        open_labels=[0],
+        open_dims=[2],
+        boundary_labels=[10],
+        boundary_dims=[2],
+        A=np.array([[1.0, 0.0], [0.0, 1.0]]),
+        B=np.array([[1.0, 2.0], [3.0, 4.0]]),
+    )
+    right = SeparatorState(
+        open_labels=[1],
+        open_dims=[2],
+        boundary_labels=[10],
+        boundary_dims=[2],
+        A=np.array([[1.0, 1.0], [0.5, -0.5]]),
+        B=np.array([[2.0, 1.0], [0.0, 1.0]]),
+    )
+
+    state, info = merge_states(
+        left,
+        right,
+        cut_labels=[10],
+        parent_boundary_labels=[],
+        label_dims={10: 2},
+        target_rank=0,
+        rank_policy="adaptive",
+        merge_tol=0.5,
+        randomized=False,
+    )
+
+    assert info.reason == "adaptive_merge"
+    assert info.used_rank < info.full_rank
+    assert info.residual_ratio <= 0.5
+    assert state.rank == info.used_rank

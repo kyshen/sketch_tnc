@@ -9,7 +9,14 @@ from src.core.blocking import OutputBlock
 from src.core.cache import SeparatorStateCache, StateCacheKey, make_local_block_key
 from src.core.network import TensorNetwork
 from src.core.partition import PartitionNode, build_partition_tree
-from src.core.state import MergeInfo, SeparatorState, compressed_state_from_tensor, exact_state_from_tensor, merge_states
+from src.core.state import (
+    MergeInfo,
+    SeparatorState,
+    adaptive_state_from_tensor,
+    compressed_state_from_tensor,
+    exact_state_from_tensor,
+    merge_states,
+)
 
 
 @dataclass
@@ -40,6 +47,12 @@ class BossRuntimeStats:
     skipped_low_saving_merges: int = 0
     num_implicit_merge_sketches: int = 0
     num_explicit_merge_compressions: int = 0
+    num_exact_leaves: int = 0
+    num_compressed_leaves: int = 0
+    leaf_residual_ratio_sum: float = 0.0
+    leaf_residual_ratio_count: int = 0
+    merge_residual_ratio_sum: float = 0.0
+    merge_residual_ratio_count: int = 0
 
     def observe(self, state: SeparatorState, *, is_leaf: bool) -> None:
         if is_leaf:
@@ -48,7 +61,17 @@ class BossRuntimeStats:
             self.internal_states_built += 1
         self.peak_rank = max(self.peak_rank, int(state.rank))
 
+    def observe_leaf_choice(self, *, compressed: bool, residual_ratio: float) -> None:
+        if compressed:
+            self.num_compressed_leaves += 1
+        else:
+            self.num_exact_leaves += 1
+        self.leaf_residual_ratio_sum += float(residual_ratio)
+        self.leaf_residual_ratio_count += 1
+
     def observe_merge(self, merge_info: MergeInfo) -> None:
+        self.merge_residual_ratio_sum += float(merge_info.residual_ratio)
+        self.merge_residual_ratio_count += 1
         if merge_info.compressed:
             self.num_compressed_merges += 1
             if merge_info.path == "implicit_randomized":
@@ -76,6 +99,10 @@ class BossRuntimeStats:
             "skipped_low_saving_merges": int(self.skipped_low_saving_merges),
             "num_implicit_merge_sketches": int(self.num_implicit_merge_sketches),
             "num_explicit_merge_compressions": int(self.num_explicit_merge_compressions),
+            "num_exact_leaves": int(self.num_exact_leaves),
+            "num_compressed_leaves": int(self.num_compressed_leaves),
+            "mean_leaf_residual_ratio": float(self.leaf_residual_ratio_sum / self.leaf_residual_ratio_count) if self.leaf_residual_ratio_count else 0.0,
+            "mean_merge_residual_ratio": float(self.merge_residual_ratio_sum / self.merge_residual_ratio_count) if self.merge_residual_ratio_count else 0.0,
         }
 
 
@@ -104,6 +131,9 @@ def materialize_exact(tn: TensorNetwork, blocks: List[OutputBlock], optimize: st
 
 def _cfg_signature(cfg: Any) -> Tuple[Tuple[str, object], ...]:
     names = (
+        "rank_policy",
+        "leaf_tol",
+        "merge_tol",
         "target_rank",
         "max_rank",
         "randomized",
@@ -147,8 +177,29 @@ def _leaf_state(
     T = tn.contract_subnetwork([nid], output_labels, slice_map=slice_map, optimize=getattr(cfg, "optimize", "greedy"))
     open_dims = [len(slice_map[l]) if l in slice_map else tn.label_dims[l] for l in part.open_labels]
     boundary_dims = [tn.label_dims[l] for l in part.boundary_labels]
-    if getattr(cfg, "target_rank", 0) <= 0:
+    rank_policy = str(getattr(cfg, "rank_policy", "fixed"))
+    if rank_policy == "adaptive":
+        state, residual_ratio = adaptive_state_from_tensor(
+            T,
+            part.open_labels,
+            open_dims,
+            part.boundary_labels,
+            boundary_dims,
+            tol=float(getattr(cfg, "leaf_tol", 1e-3)),
+            randomized=bool(getattr(cfg, "randomized", True)),
+            oversample=int(getattr(cfg, "oversample", 4)),
+            n_power_iter=int(getattr(cfg, "n_power_iter", 1)),
+            rng=rng,
+        )
+        if stats is not None:
+            open_flat = int(np.prod(open_dims)) if open_dims else 1
+            boundary_flat = int(np.prod(boundary_dims)) if boundary_dims else 1
+            full_rank = min(open_flat, boundary_flat)
+            stats.observe_leaf_choice(compressed=bool(state.rank < full_rank), residual_ratio=float(residual_ratio))
+    elif getattr(cfg, "target_rank", 0) <= 0:
         state = exact_state_from_tensor(T, part.open_labels, open_dims, part.boundary_labels, boundary_dims)
+        if stats is not None:
+            stats.observe_leaf_choice(compressed=False, residual_ratio=0.0)
     else:
         target_rank = min(int(getattr(cfg, "target_rank", 1)), max(1, int(np.prod(open_dims)) if open_dims else 1), max(1, int(np.prod(boundary_dims)) if boundary_dims else 1))
         state = compressed_state_from_tensor(
@@ -163,6 +214,11 @@ def _leaf_state(
             n_power_iter=int(getattr(cfg, "n_power_iter", 1)),
             rng=rng,
         )
+        if stats is not None:
+            open_flat = int(np.prod(open_dims)) if open_dims else 1
+            boundary_flat = int(np.prod(boundary_dims)) if boundary_dims else 1
+            full_rank = min(open_flat, boundary_flat)
+            stats.observe_leaf_choice(compressed=bool(state.rank < full_rank), residual_ratio=0.0)
     if stats is not None:
         stats.observe(state, is_leaf=True)
     return state
@@ -192,6 +248,7 @@ def _build_state(
     left, right = part.children
     s_left = _build_state(tn, left, slice_map, cfg, cache=cache, stats=stats, base_seed=base_seed)
     s_right = _build_state(tn, right, slice_map, cfg, cache=cache, stats=stats, base_seed=base_seed)
+    rank_policy = str(getattr(cfg, "rank_policy", "fixed"))
     rank = min(int(getattr(cfg, "target_rank", 1)), int(getattr(cfg, "max_rank", getattr(cfg, "target_rank", 1))))
     state, merge_info = merge_states(
         s_left,
@@ -200,6 +257,8 @@ def _build_state(
         parent_boundary_labels=part.boundary_labels,
         label_dims=tn.label_dims,
         target_rank=rank,
+        rank_policy=rank_policy,
+        merge_tol=float(getattr(cfg, "merge_tol", 1e-2)),
         randomized=bool(getattr(cfg, "randomized", True)),
         oversample=int(getattr(cfg, "oversample", 4)),
         n_power_iter=int(getattr(cfg, "n_power_iter", 1)),
@@ -236,6 +295,8 @@ def _maybe_refine_block(
     base_seed: int = 0,
 ) -> tuple[np.ndarray, int]:
     if not bool(getattr(cfg, "adaptive_refine", False)):
+        if str(getattr(cfg, "rank_policy", "fixed")) == "adaptive":
+            return approx_block, -1
         return approx_block, int(getattr(cfg, "target_rank", 1))
     target_rank = int(getattr(cfg, "target_rank", 1))
     tol = float(getattr(cfg, "refine_tol", 1e-3))
@@ -295,10 +356,11 @@ def materialize_boss(tn: TensorNetwork, blocks: List[OutputBlock], cfg) -> BossR
         )
         perm = [state.open_labels.index(lbl) for lbl in tn.open_label_order]
         block_tensor = _state_to_dense(state)
+        current_rank = int(state.rank)
         if list(range(len(perm))) != perm:
             block_tensor = np.transpose(block_tensor, perm)
         if bool(getattr(cfg, "adaptive_refine", False)):
-            old_rank = int(getattr(cfg, "target_rank", 1))
+            old_rank = current_rank if str(getattr(cfg, "rank_policy", "fixed")) == "adaptive" else int(getattr(cfg, "target_rank", 1))
             block_tensor, used_rank = _maybe_refine_block(
                 tn,
                 block,
@@ -310,9 +372,9 @@ def materialize_boss(tn: TensorNetwork, blocks: List[OutputBlock], cfg) -> BossR
             )
             if used_rank != old_rank:
                 refined_blocks += 1
-            used_ranks.append(int(used_rank))
+            used_ranks.append(int(current_rank if used_rank < 0 else used_rank))
         else:
-            used_ranks.append(int(getattr(cfg, "target_rank", 1)))
+            used_ranks.append(int(current_rank))
         t_contract += time.perf_counter() - t0
         if block_labels:
             row_slices = tuple(slice(min(v), max(v) + 1) for _, v in sorted(block.slice_map.items(), key=lambda kv: tn.open_label_order.index(kv[0])))
@@ -326,8 +388,8 @@ def materialize_boss(tn: TensorNetwork, blocks: List[OutputBlock], cfg) -> BossR
     return BossResult(dense=dense, contract_time_sec=t_contract, emit_time_sec=t_emit, meta={
         "num_blocks": len(blocks),
         "refined_blocks": refined_blocks,
-        "mean_rank": float(np.mean(used_ranks)) if used_ranks else float(getattr(cfg, "target_rank", 1)),
-        "max_rank": max(used_ranks) if used_ranks else int(getattr(cfg, "target_rank", 1)),
+        "mean_rank": float(np.mean(used_ranks)) if used_ranks else 0.0,
+        "max_rank": max(used_ranks) if used_ranks else 0,
         **stats.summary(),
         **cache.summary(),
     })

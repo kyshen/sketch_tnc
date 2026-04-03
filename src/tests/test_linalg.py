@@ -1,6 +1,11 @@
 import numpy as np
 
-from src.core.linalg import compress_from_factors, compress_from_implicit_factors
+from src.core.linalg import (
+    choose_rank_from_singular_values,
+    compress_from_factors,
+    compress_from_implicit_factors,
+    compress_matrix_adaptive,
+)
 
 
 def test_compress_from_implicit_factors_matches_explicit_shapes():
@@ -51,3 +56,17 @@ def test_compress_from_implicit_factors_matches_explicit_shapes():
     assert implicit.left.shape == explicit.left.shape == (6, target_rank)
     assert implicit.right.shape == explicit.right.shape == (4, target_rank)
     assert np.linalg.norm(implicit_M - explicit_M) < 1e-6
+
+
+def test_choose_rank_from_singular_values_respects_tolerance():
+    s = np.array([4.0, 2.0, 1.0, 0.1])
+    rank, residual = choose_rank_from_singular_values(s, tol=0.25)
+    assert rank == 2
+    assert residual <= 0.25
+
+
+def test_compress_matrix_adaptive_chooses_reduced_rank():
+    M = np.diag([4.0, 2.0, 1.0, 0.1])
+    result = compress_matrix_adaptive(M, tol=0.25)
+    assert result.chosen_rank == 2
+    assert result.residual_ratio <= 0.25

@@ -35,6 +35,9 @@ class MethodConfig:
     name: str = "boss"
     optimize: str = "greedy"
     seed: int = 0
+    rank_policy: str = "adaptive"
+    leaf_tol: float = 1e-3
+    merge_tol: float = 5e-3
     target_rank: int = 2
     max_rank: int = 16
     randomized: bool = True

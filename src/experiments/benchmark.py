@@ -33,6 +33,7 @@ def _default_variants() -> list[BenchmarkVariant]:
             "boss_selective_explicit",
             (
                 "method=boss",
+                "method.rank_policy=fixed",
                 "method.target_rank=2",
                 "method.max_rank=8",
                 "method.implicit_merge_sketch=false",
@@ -42,6 +43,7 @@ def _default_variants() -> list[BenchmarkVariant]:
             "boss_selective_implicit",
             (
                 "method=boss",
+                "method.rank_policy=fixed",
                 "method.target_rank=2",
                 "method.max_rank=8",
                 "method.implicit_merge_sketch=true",
@@ -51,6 +53,7 @@ def _default_variants() -> list[BenchmarkVariant]:
             "boss_force_explicit",
             (
                 "method=boss",
+                "method.rank_policy=fixed",
                 "method.target_rank=2",
                 "method.max_rank=8",
                 "method.implicit_merge_sketch=false",
@@ -63,6 +66,7 @@ def _default_variants() -> list[BenchmarkVariant]:
             "boss_force_implicit",
             (
                 "method=boss",
+                "method.rank_policy=fixed",
                 "method.target_rank=2",
                 "method.max_rank=8",
                 "method.implicit_merge_sketch=true",
@@ -82,6 +86,7 @@ def _rank_sweep_variants(ranks: Iterable[int]) -> list[BenchmarkVariant]:
                 f"boss_selective_explicit_r{rank}",
                 (
                     "method=boss",
+                    "method.rank_policy=fixed",
                     f"method.target_rank={int(rank)}",
                     f"method.max_rank={max(int(rank), 8)}",
                     "method.implicit_merge_sketch=false",
@@ -93,6 +98,7 @@ def _rank_sweep_variants(ranks: Iterable[int]) -> list[BenchmarkVariant]:
                 f"boss_selective_implicit_r{rank}",
                 (
                     "method=boss",
+                    "method.rank_policy=fixed",
                     f"method.target_rank={int(rank)}",
                     f"method.max_rank={max(int(rank), 8)}",
                     "method.implicit_merge_sketch=true",
