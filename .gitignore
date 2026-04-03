@@ -1,2 +1,60 @@
+# ---- Python bytecode / caches ----
+__pycache__/
+*.py[cod]
+*$py.class
+
+# ---- Docs / local materials ----
 doc/
+report/
+.vscode/
+
+# ---- Virtual environments ----
 .venv/
+venv/
+ENV/
+env/
+
+# ---- Packaging / build outputs ----
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# ---- Test / coverage outputs ----
+.pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+
+# ---- Type-checker / linter caches ----
+.mypy_cache/
+.ruff_cache/
+.pyright/
+
+# ---- Jupyter ----
+.ipynb_checkpoints/
+
+# ---- Hydra / experiment outputs ----
+outputs/
+multirun/
+**/.hydra/
+
+# ---- Sphinx build outputs ----
+doc/_build/
+docs/_build/
+
+# ---- OS / editor noise ----
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# ---- IDEs ----
+.idea/
+
+# ---- Logs / temp ----
+*.log
+logs/
+*.tmp

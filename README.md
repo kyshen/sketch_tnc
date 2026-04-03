@@ -26,13 +26,14 @@ Exact ring materialization:
 python run.py experiment=paper experiment.name=ring_exact data=ring method=exact
 ```
 
-BOSS on a ring with blockwise output:
+BOSS on a ring with adaptive rank selection:
 
 ```bash
 python run.py experiment=paper experiment.name=ring_boss data=ring method=boss \
   data.num_nodes=7 data.phys_dim=3 data.bond_dim=6 \
   block.block_labels=2 block.chunk_size=1 \
-  method.target_rank=2 seed=7
+  method.rank_policy=adaptive method.leaf_tol=0.02 method.merge_tol=0.05 \
+  method.tol_schedule=flat seed=7
 ```
 
 BOSS on a custom connected graph:
@@ -51,11 +52,18 @@ Aggregate a directory of runs into CSV and JSONL summaries:
 python -m src.experiments.aggregate outputs/paper
 ```
 
-Run a first benchmark suite comparing exact, explicit BOSS, and implicit-sketch BOSS:
+Run the representative benchmark suite:
 
 ```bash
-python -m src.experiments.benchmark --preset m4_probe
+python -m src.experiments.benchmark --preset representative
 ```
+
+The representative suite keeps only four runs per case:
+
+- `exact`
+- `boss_fixed_baseline`
+- `boss_adaptive_mainline`
+- `boss_adaptive_conservative`
 
 Each run directory includes:
 
@@ -70,4 +78,5 @@ Each run directory includes:
 
 - The top-level `seed` is treated as the experiment seed and is propagated into both data generation and randomized BOSS compression.
 - `eval.json` is preserved for backward compatibility, while `metrics.json` is added for downstream analysis.
+- The project mainline is `method.rank_policy=adaptive`; the fixed-rank path is retained only as a legacy baseline.
 - This is a research codebase for paper experiments, not a fully optimized industrial implementation.

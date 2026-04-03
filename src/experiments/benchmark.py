@@ -7,7 +7,7 @@ import json
 from pathlib import Path
 import subprocess
 import sys
-from typing import Iterable, List
+from typing import Iterable
 
 from src.experiments.aggregate import aggregate_runs
 from src.experiments.io import load_run_record
@@ -26,11 +26,11 @@ class BenchmarkCase:
     overrides: tuple[str, ...]
 
 
-def _default_variants() -> list[BenchmarkVariant]:
+def _smoke_variants() -> list[BenchmarkVariant]:
     return [
         BenchmarkVariant("exact", ("method=exact",)),
         BenchmarkVariant(
-            "boss_selective_explicit",
+            "boss_fixed_baseline",
             (
                 "method=boss",
                 "method.rank_policy=fixed",
@@ -40,78 +40,45 @@ def _default_variants() -> list[BenchmarkVariant]:
             ),
         ),
         BenchmarkVariant(
-            "boss_selective_implicit",
+            "boss_adaptive_mainline",
             (
                 "method=boss",
-                "method.rank_policy=fixed",
-                "method.target_rank=2",
-                "method.max_rank=8",
+                "method.rank_policy=adaptive",
+                "method.tol_schedule=flat",
+                "method.leaf_tol=0.02",
+                "method.merge_tol=0.05",
                 "method.implicit_merge_sketch=true",
-            ),
-        ),
-        BenchmarkVariant(
-            "boss_force_explicit",
-            (
-                "method=boss",
-                "method.rank_policy=fixed",
-                "method.target_rank=2",
-                "method.max_rank=8",
-                "method.implicit_merge_sketch=false",
-                "method.compress_min_rank_product=0",
-                "method.compress_max_exact_size=0",
-                "method.compress_min_saving_ratio=0.0",
-            ),
-        ),
-        BenchmarkVariant(
-            "boss_force_implicit",
-            (
-                "method=boss",
-                "method.rank_policy=fixed",
-                "method.target_rank=2",
-                "method.max_rank=8",
-                "method.implicit_merge_sketch=true",
-                "method.compress_min_rank_product=0",
-                "method.compress_max_exact_size=0",
-                "method.compress_min_saving_ratio=0.0",
             ),
         ),
     ]
 
 
-def _rank_sweep_variants(ranks: Iterable[int]) -> list[BenchmarkVariant]:
-    variants: list[BenchmarkVariant] = [BenchmarkVariant("exact", ("method=exact",))]
-    for rank in ranks:
-        variants.append(
-            BenchmarkVariant(
-                f"boss_selective_explicit_r{rank}",
-                (
-                    "method=boss",
-                    "method.rank_policy=fixed",
-                    f"method.target_rank={int(rank)}",
-                    f"method.max_rank={max(int(rank), 8)}",
-                    "method.implicit_merge_sketch=false",
-                ),
-            )
-        )
-        variants.append(
-            BenchmarkVariant(
-                f"boss_selective_implicit_r{rank}",
-                (
-                    "method=boss",
-                    "method.rank_policy=fixed",
-                    f"method.target_rank={int(rank)}",
-                    f"method.max_rank={max(int(rank), 8)}",
-                    "method.implicit_merge_sketch=true",
-                ),
-            )
-        )
-    return variants
-
-
-def _adaptive_schedule_variants() -> list[BenchmarkVariant]:
+def _representative_variants() -> list[BenchmarkVariant]:
     return [
+        BenchmarkVariant("exact", ("method=exact",)),
         BenchmarkVariant(
-            "boss_adaptive_flat",
+            "boss_fixed_baseline",
+            (
+                "method=boss",
+                "method.rank_policy=fixed",
+                "method.target_rank=24",
+                "method.max_rank=24",
+                "method.implicit_merge_sketch=false",
+            ),
+        ),
+        BenchmarkVariant(
+            "boss_adaptive_mainline",
+            (
+                "method=boss",
+                "method.rank_policy=adaptive",
+                "method.tol_schedule=flat",
+                "method.leaf_tol=0.02",
+                "method.merge_tol=0.05",
+                "method.implicit_merge_sketch=true",
+            ),
+        ),
+        BenchmarkVariant(
+            "boss_adaptive_conservative",
             (
                 "method=boss",
                 "method.rank_policy=adaptive",
@@ -121,50 +88,10 @@ def _adaptive_schedule_variants() -> list[BenchmarkVariant]:
                 "method.implicit_merge_sketch=true",
             ),
         ),
-        BenchmarkVariant(
-            "boss_adaptive_depth_open",
-            (
-                "method=boss",
-                "method.rank_policy=adaptive",
-                "method.tol_schedule=depth_open",
-                "method.leaf_tol=0.01",
-                "method.merge_tol=0.02",
-                "method.tol_depth_decay=1.5",
-                "method.tol_open_power=0.5",
-                "method.implicit_merge_sketch=true",
-            ),
-        ),
     ]
 
 
-def _adaptive_tuning_variants() -> list[BenchmarkVariant]:
-    specs = [
-        ("flat_loose", "flat", 0.05, 0.10),
-        ("flat_mid", "flat", 0.02, 0.05),
-        ("flat_tight", "flat", 0.01, 0.02),
-        ("depth_open_loose", "depth_open", 0.05, 0.10),
-        ("depth_open_mid", "depth_open", 0.02, 0.05),
-        ("depth_open_tight", "depth_open", 0.01, 0.02),
-    ]
-    variants: list[BenchmarkVariant] = [BenchmarkVariant("exact", ("method=exact",))]
-    for name, schedule, leaf_tol, merge_tol in specs:
-        variants.append(
-            BenchmarkVariant(
-                f"boss_adaptive_{name}",
-                (
-                    "method=boss",
-                    "method.rank_policy=adaptive",
-                    f"method.tol_schedule={schedule}",
-                    f"method.leaf_tol={leaf_tol}",
-                    f"method.merge_tol={merge_tol}",
-                    "method.implicit_merge_sketch=true",
-                ),
-            )
-        )
-    return variants
-
-
-def _preset_cases(preset: str) -> list[BenchmarkCase]:
+def _smoke_cases() -> list[BenchmarkCase]:
     common = (
         "task.compute_exact_reference=true",
         "task.save_output_dense=false",
@@ -172,81 +99,63 @@ def _preset_cases(preset: str) -> list[BenchmarkCase]:
         "block.chunk_size=1",
         "seed=0",
     )
-    if preset == "m4_probe":
-        return [
-            BenchmarkCase(
-                "ring7_p3_b6_r2",
-                (
-                    "data=ring",
-                    "data.num_nodes=7",
-                    "data.phys_dim=3",
-                    "data.bond_dim=6",
-                )
-                + common,
-            ),
-            BenchmarkCase(
-                "random7_p3_b5_r2",
-                (
-                    "data=random_connected",
-                    "data.num_nodes=7",
-                    "data.phys_dim=3",
-                    "data.bond_dim=5",
-                    "data.edge_prob=0.45",
-                )
-                + common,
-            ),
-        ]
-    if preset == "smoke":
-        return [
-            BenchmarkCase(
-                "ring5_p2_b3_r2",
-                (
-                    "data=ring",
-                    "data.num_nodes=5",
-                    "data.phys_dim=2",
-                    "data.bond_dim=3",
-                )
-                + common,
-            ),
-        ]
-    if preset == "adaptive_large":
-        return [
-            BenchmarkCase(
-                "ring9_p3_b6",
-                (
-                    "data=ring",
-                    "data.num_nodes=9",
-                    "data.phys_dim=3",
-                    "data.bond_dim=6",
-                )
-                + common,
-            ),
-            BenchmarkCase(
-                "random9_p3_b5",
-                (
-                    "data=random_connected",
-                    "data.num_nodes=9",
-                    "data.phys_dim=3",
-                    "data.bond_dim=5",
-                    "data.edge_prob=0.45",
-                )
-                + common,
-            ),
-        ]
-    raise ValueError(f"Unknown benchmark preset: {preset}")
+    return [
+        BenchmarkCase(
+            "ring5_p2_b3",
+            (
+                "data=ring",
+                "data.num_nodes=5",
+                "data.phys_dim=2",
+                "data.bond_dim=3",
+            )
+            + common,
+        ),
+    ]
+
+
+def _representative_cases() -> list[BenchmarkCase]:
+    common = (
+        "task.compute_exact_reference=true",
+        "task.save_output_dense=false",
+        "block.block_labels=2",
+        "block.chunk_size=1",
+        "seed=0",
+    )
+    return [
+        BenchmarkCase(
+            "ring9_p3_b6",
+            (
+                "data=ring",
+                "data.num_nodes=9",
+                "data.phys_dim=3",
+                "data.bond_dim=6",
+            )
+            + common,
+        ),
+        BenchmarkCase(
+            "random9_p3_b5",
+            (
+                "data=random_connected",
+                "data.num_nodes=9",
+                "data.phys_dim=3",
+                "data.bond_dim=5",
+                "data.edge_prob=0.45",
+            )
+            + common,
+        ),
+    ]
 
 
 def build_benchmark_plan(preset: str) -> list[tuple[BenchmarkCase, BenchmarkVariant]]:
-    if preset == "rank_sweep":
-        variants = _rank_sweep_variants((2, 4, 6, 8, 12, 16, 24))
-    elif preset == "adaptive_schedule":
-        variants = _adaptive_schedule_variants()
-    elif preset == "adaptive_tuning":
-        variants = _adaptive_tuning_variants()
+    if preset == "smoke":
+        cases = _smoke_cases()
+        variants = _smoke_variants()
+    elif preset == "representative":
+        cases = _representative_cases()
+        variants = _representative_variants()
     else:
-        variants = _default_variants()
-    base_preset = "m4_probe" if preset in {"rank_sweep", "adaptive_schedule"} else ("adaptive_large" if preset == "adaptive_tuning" else preset)
-    return [(case, variant) for case in _preset_cases(base_preset) for variant in variants]
+        raise ValueError(f"Unknown benchmark preset: {preset}")
+    return [(case, variant) for case in cases for variant in variants]
 
 
 def _run_single(
@@ -358,7 +267,7 @@ def run_benchmark_suite(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run a predefined benchmark suite and aggregate the results.")
-    parser.add_argument("--preset", default="m4_probe", help="Benchmark preset name.")
+    parser.add_argument("--preset", default="representative", help="Benchmark preset name.")
     parser.add_argument("--suite", default=None, help="Optional suite name. Defaults to a timestamped name.")
     args = parser.parse_args()
     outputs = run_benchmark_suite(preset=args.preset, suite=args.suite)
