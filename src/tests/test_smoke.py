@@ -30,3 +30,19 @@ def test_custom_graph_data_smoke():
     data = GraphTNData(generator="custom_edges", num_nodes=4, phys_dim=2, bond_dim=3, custom_edges=((0,1),(1,2),(2,3),(3,0)), open_legs_per_node=1, seed=0)
     problem = data.get("fit")
     assert len(problem.network.nodes) == 4
+
+
+def test_chain_graph_data_smoke():
+    data = GraphTNData(generator="chain", num_nodes=6, phys_dim=2, bond_dim=3, open_legs_per_node=1, seed=0)
+    problem = data.get("fit")
+    graph = problem.network.interaction_graph()
+    assert len(problem.network.nodes) == 6
+    assert graph.number_of_edges() == 5
+
+
+def test_tree_graph_data_smoke():
+    data = GraphTNData(generator="tree", num_nodes=6, phys_dim=2, bond_dim=3, open_legs_per_node=1, seed=0)
+    problem = data.get("fit")
+    graph = problem.network.interaction_graph()
+    assert len(problem.network.nodes) == 6
+    assert graph.number_of_edges() == 5

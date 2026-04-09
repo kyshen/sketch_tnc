@@ -20,10 +20,13 @@ def make_graph(cfg, rng: np.random.Generator) -> nx.Graph:
     gen = cfg["generator"] if isinstance(cfg, dict) else cfg.generator
     if gen == "random_connected":
         return _ensure_connected_random(int(cfg["num_nodes"] if isinstance(cfg, dict) else cfg.num_nodes), float(cfg.get("edge_prob", 0.45) if isinstance(cfg, dict) else cfg.edge_prob), rng)
+    if gen == "chain":
+        return nx.path_graph(int(cfg["num_nodes"] if isinstance(cfg, dict) else cfg.num_nodes))
     if gen == "ring":
         return nx.cycle_graph(int(cfg["num_nodes"] if isinstance(cfg, dict) else cfg.num_nodes))
     if gen == "tree":
-        return nx.random_tree(int(cfg["num_nodes"] if isinstance(cfg, dict) else cfg.num_nodes), seed=int(rng.integers(0, 1_000_000)))
+        num_nodes = int(cfg["num_nodes"] if isinstance(cfg, dict) else cfg.num_nodes)
+        return nx.random_labeled_tree(num_nodes, seed=int(rng.integers(0, 1_000_000)))
     if gen == "grid2d":
         grid_shape = cfg.get("grid_shape", (2, 3)) if isinstance(cfg, dict) else cfg.grid_shape
         rows, cols = map(int, grid_shape)
