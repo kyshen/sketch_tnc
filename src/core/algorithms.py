@@ -380,6 +380,8 @@ def _maybe_refine_block(
     cache: SeparatorStateCache | None = None,
     stats: ASTNCRuntimeStats | None = None,
     base_seed: int = 0,
+    depth_info: Dict[tuple[int, ...], tuple[int, int, int]] | None = None,
+    max_depth: int = 0,
 ) -> tuple[np.ndarray, int]:
     if not bool(getattr(cfg, "adaptive_refine", False)):
         if str(getattr(cfg, "rank_policy", "fixed")) == "adaptive":
@@ -410,6 +412,8 @@ def _maybe_refine_block(
             cache=cache,
             stats=stats,
             base_seed=base_seed,
+            depth_info=depth_info,
+            max_depth=max_depth,
         )
         current = _state_to_dense(state)
     return current, target_rank

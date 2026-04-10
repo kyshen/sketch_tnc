@@ -57,4 +57,4 @@ def test_write_run_outputs_writes_required_files(tmp_path):
     assert outputs["config_snapshot"].exists()
     assert outputs["readme_results"].exists()
     csv_text = outputs["runs_csv"].read_text(encoding="utf-8")
-    assert "family,instance,method,status" in csv_text
+    assert "family,instance,topology,size_description,method,method_variant,status" in csv_text
