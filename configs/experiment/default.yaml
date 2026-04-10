@@ -1,0 +1,3 @@
+name: smoke
+group: dev
+protocol: single_run

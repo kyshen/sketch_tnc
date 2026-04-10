@@ -1,0 +1,41 @@
+\usepackage[margin=0.75in]{geometry}
+\usepackage{fontspec}
+\usepackage{xeCJK}
+\setmainfont{TeX Gyre Termes}
+\setsansfont{Latin Modern Sans}
+\setmonofont{Latin Modern Mono}
+\setCJKmainfont[
+  BoldFont=FandolHei-Regular,
+  ItalicFont=FandolKai-Regular
+]{FandolSong-Regular}
+\setCJKsansfont{FandolHei-Regular}
+\setCJKmonofont{FandolFang-Regular}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb,amsfonts,mathtools}
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{tikz}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage[nameinlink,noabbrev]{cleveref}
+\usepackage[backend=biber,style=numeric,sorting=nyt,maxbibnames=99]{biblatex}
+
+\addbibresource{ref.bib}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=[rgb]{0.08,0.30,0.60},
+  citecolor=[rgb]{0.00,0.42,0.38},
+  urlcolor=[rgb]{0.65,0.33,0.04},
+}
+
+\setlist[itemize]{leftmargin=1.2em,topsep=2pt,itemsep=2pt,parsep=0pt}
+\setlength{\textfloatsep}{10pt plus 2pt minus 2pt}
+\setlength{\floatsep}{8pt plus 2pt minus 2pt}
+\setlength{\abovecaptionskip}{4pt}
+\setlength{\belowcaptionskip}{0pt}
+
+\newcommand{\method}{\textsf{ASTNC}}
+\newcommand{\RR}{\mathbb{R}}
+\newcommand{\norm}[1]{\left\lVert #1 \right\rVert}

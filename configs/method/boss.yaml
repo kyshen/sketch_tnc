@@ -10,13 +10,14 @@ tol_open_power: 0.5
 target_rank: 2
 max_rank: 16
 randomized: true
-oversample: 4
-n_power_iter: 1
+oversample: 1
+n_power_iter: 0
 selective_threshold: 0
 compress_min_rank_product: 4
 compress_max_exact_size: 256
 compress_min_saving_ratio: 0.1
 implicit_merge_sketch: true
+implicit_min_full_rank: 192
 adaptive_refine: false
 refine_tol: 0.001
 max_refine_steps: 0

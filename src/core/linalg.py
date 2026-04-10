@@ -206,7 +206,10 @@ def compress_from_implicit_factors_adaptive(
         raise ValueError("Implicit adaptive compression expects a positive latent rank.")
     rng = _resolve_rng(rng)
     max_subspace = min(int(latent_rank), int(num_rows), int(num_cols))
-    sketch_cols = min(max_subspace, max(int(oversample) + 8, 8))
+    # Start from the minimal oversampled subspace and expand only when needed.
+    # This keeps implicit sketch aligned with the "small-space" objective in easy
+    # cases while preserving robustness via adaptive growth below.
+    sketch_cols = min(max_subspace, max(int(oversample) + 1, 2))
     while True:
         Omega = rng.standard_normal((int(num_cols), sketch_cols))
         Y = apply_A(apply_BT(Omega))
@@ -217,7 +220,7 @@ def compress_from_implicit_factors_adaptive(
         Uh, s, Vt = np.linalg.svd(small, full_matrices=False)
         rank, residual_ratio = choose_rank_from_singular_values(s, tol)
         rank = max(1, min(rank, len(s)))
-        enough_room = rank + int(oversample) < sketch_cols
+        enough_room = rank + int(oversample) + 1 <= sketch_cols
         if enough_room or sketch_cols >= max_subspace:
             U = Q @ Uh[:, :rank]
             return AdaptiveCompressionResult(

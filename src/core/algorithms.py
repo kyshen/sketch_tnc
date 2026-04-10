@@ -353,6 +353,7 @@ def _build_state(
         compress_max_exact_size=int(getattr(cfg, "compress_max_exact_size", 0)),
         compress_min_saving_ratio=float(getattr(cfg, "compress_min_saving_ratio", 0.0)),
         implicit_merge_sketch=bool(getattr(cfg, "implicit_merge_sketch", True)),
+        implicit_min_full_rank=int(getattr(cfg, "implicit_min_full_rank", 192)),
         rng=rng,
     )
     if stats is not None:

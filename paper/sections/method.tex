@@ -1,0 +1,284 @@
+\section{方法}
+
+\subsection{整体思路}
+设 $\mathcal N$ 为一个带开放标签集合 $\mathcal O$ 的张量网络，内部收缩标签集合记为 $\mathcal I$。
+将所有内部标签收缩后，可得到完整输出张量
+\[
+X = \mathrm{Mat}(\mathcal N) \in \mathbb{R}^{d_1 \times \cdots \times d_{|\mathcal O|}}.
+\]
+相应地，端到端时间可写为
+\[
+T_{\mathrm{total}} = T_{\mathrm{contract}} + T_{\mathrm{emit}},
+\]
+其中 $T_{\mathrm{contract}}$ 表示内部收缩与近似本身的代价，$T_{\mathrm{emit}}$ 表示将结果写回最终输出缓冲区的代价。
+在完整收缩场景下，$T_{\mathrm{emit}}$ 通常难以避免，因此真正值得优化的主要是 $T_{\mathrm{contract}}$。
+基于这一判断，本文把近似严格限制在\emph{内部接口}上，而不直接压缩输出边界。
+
+整条方法主线可以概括为三步：
+\begin{enumerate}
+    \item 在网络交互图上构造一棵二叉划分树，把一般图上的收缩过程写成一系列二叉合并；
+    \item 对每个子树，用一个从输出侧到边界侧的局部接口来概括它对外仍然可见的信息；
+    \item 沿树递归合并这些局部接口，并在每次合并后重新压缩，以控制中间状态规模。
+\end{enumerate}
+
+\subsection{划分树与分隔状态}
+为了统一组织一般图上的递归收缩，我们在张量网络的交互图上构造一棵二叉划分树（partition tree）。
+树上的每个节点 $v$ 对应一个子网络 $\mathcal N_v$；叶节点对应单个原始张量，内部节点对应两个子网络的合并，根节点对应整个网络。
+
+对任意节点 $v$，我们关心三类标签：
+\begin{itemize}
+    \item \textbf{输出标签} $\mathcal O_v$：该子树最终仍通向输出侧的标签；
+    \item \textbf{边界标签} $\mathcal B_v$：该子树与外部其余网络连接所需保留的标签；
+    \item \textbf{切割标签} $\mathcal C_v$：当 $v$ 由两个孩子合并而成时，连接左右孩子并在本层被消去的标签。
+\end{itemize}
+根节点不再与外部网络相连，因此其边界标签为空；叶节点不再继续拆分，因此没有切割标签。
+
+给定输出块 $\Omega_b$ 后，我们将节点 $v$ 的\emph{分隔状态}定义为
+\[
+M_v \in \mathbb{R}^{d_{\mathrm{open}}(v) \times d_{\mathrm{bnd}}(v)},
+\]
+其中
+\[
+d_{\mathrm{open}}(v)=\prod_{\ell\in\mathcal O_v} d_{\ell},
+\qquad
+d_{\mathrm{bnd}}(v)=\prod_{\ell\in\mathcal B_v} d_{\ell}.
+\]
+这里 $d_{\ell}$ 表示标签 $\ell$ 在当前输出块中的局部维度；若该标签未被当前块限制，则 $d_{\ell}=d_\ell$。
+矩阵 $M_v$ 的行对应输出侧配置，列对应边界侧配置，因此它刻画了当前子树在输出块 $\Omega_b$ 下对父节点可见的局部行为。
+
+直接显式存储 $M_v$ 往往代价过高，因此我们采用低秩因子形式
+\[
+M_v \approx A_v \bigl(B_v\bigr)^\top,
+\]
+其中
+\[
+A_v \in \mathbb{R}^{d_{\mathrm{open}}(v) \times r_v},
+\qquad
+B_v \in \mathbb{R}^{d_{\mathrm{bnd}}(v) \times r_v},
+\]
+$r_v$ 是节点 $v$ 的接口秩。
+这种写法把输出侧与边界侧显式分开，也清楚地说明了本文的近似位置：输出边界保持不变，近似只发生在内部接口状态上。
+
+\subsection{树上的递归合并}
+在定义了分隔状态之后，整棵划分树上的计算就可以写成统一的递归。
+
+\paragraph{叶节点。}
+对叶节点 $v$，其子网络只包含一个原始张量。
+在给定输出块后，我们先将与当前块相关的开放标签限制到局部索引范围，再把张量重排成
+\[
+T_v \in \mathbb{R}^{d_{\mathrm{open}}(v) \times d_{\mathrm{bnd}}(v)}.
+\]
+若不做近似，则 $T_v$ 就是该叶节点的精确分隔状态；若做近似，则对 $T_v$ 做低秩压缩，得到
+\[
+M_v \approx A_v \bigl(B_v\bigr)^\top.
+\]
+
+\paragraph{内部节点。}
+设内部节点 $v$ 的两个孩子为 $v_L$ 和 $v_R$，其分隔状态分别为
+\[
+M_{v_L} \approx A_{v_L} \bigl(B_{v_L}\bigr)^\top,
+\qquad
+M_{v_R} \approx A_{v_R} \bigl(B_{v_R}\bigr)^\top.
+\]
+父节点的构造可分为三步。
+
+\paragraph{(i) 合并输出侧。}
+父节点的输出标签满足
+\[
+\mathcal O_v = \mathcal O_{v_L} \cup \mathcal O_{v_R},
+\qquad
+\mathcal O_{v_L} \cap \mathcal O_{v_R} = \varnothing.
+\]
+因此，父节点的输出侧配置空间是左右孩子输出侧配置空间的笛卡尔积。
+在因子层面，这一步对应于将两个孩子的输出侧因子做外积，等价地可写成 Kronecker 积
+\[
+A_{\mathrm{mat}} = A_{v_L} \otimes A_{v_R},
+\]
+其列数为 $r_{v_L} r_{v_R}$。
+
+\paragraph{(ii) 收缩切割标签，保留边界标签。}
+设父节点保留的边界标签集合为 $\mathcal B_v$，本层被消去的切割标签集合为 $\mathcal C_v$。
+则父节点未压缩的边界侧因子可以看成对两个孩子的边界侧因子沿 $\mathcal C_v$ 做收缩：
+\[
+B_{\mathrm{mat}} = B_{v_L} \times_{\mathcal C_v} B_{v_R}.
+\]
+直观地看，这一步完成了“该消去的内部边被消去，该保留给父节点的边界仍然保留”。
+
+\paragraph{(iii) 重新压缩。}
+经过前两步后，父节点得到未压缩表示
+\[
+\widetilde M_v = A_{\mathrm{mat}} B_{\mathrm{mat}}^\top.
+\]
+由于其中的中间列数已经膨胀到 $r_{v_L} r_{v_R}$，若不立即重压缩，秩会在树上迅速增长。
+因此，我们对 $\widetilde M_v$ 再做一次低秩压缩，写回统一的分隔状态形式
+\[
+M_v \approx A_v \bigl(B_v\bigr)^\top.
+\]
+
+\subsection{自适应秩选择}
+在分隔状态递归中，每次叶节点构造和内部节点合并之后，都要对当前接口重新压缩，以防止秩在树上不断膨胀。
+最直接的做法是为所有节点统一指定一个固定秩 $r$。
+这种方案实现简单，但它默认划分树上不同节点的接口难度大致相同；这一假设在实际中通常并不成立。
+
+不同节点对应的子树规模、边界结构、当前输出块下的局部自由度以及谱衰减形状都可能差别很大。
+有些节点本身较简单，较低秩已经足够；另一些节点则包含更复杂的内部耦合，若仍采用统一秩预算，就会过早丢失关键信息。
+因此，固定秩往往会同时带来两类问题：在简单节点上保留了多余通道，在困难节点上又压得不够。
+
+基于这一观察，本文在每个待压缩节点上按局部误差容忍度自适应选择秩，而不是预先指定统一目标秩。
+设某个待压缩接口矩阵为
+\[
+M \in \mathbb{R}^{m \times n},
+\]
+其奇异值分解为
+\[
+M = U \Sigma V^\top,
+\qquad
+\Sigma = \mathrm{diag}(\sigma_1,\sigma_2,\ldots),
+\qquad
+\sigma_1 \ge \sigma_2 \ge \cdots \ge 0.
+\]
+若取其秩-$r$ 截断近似
+\[
+M_r = U_r \Sigma_r V_r^\top,
+\]
+则 Frobenius 范数下的相对误差为
+\[
+\frac{\|M - M_r\|_F}{\|M\|_F}
+=
+\left(
+\frac{\sum_{i>r} \sigma_i^2}{\sum_i \sigma_i^2}
+\right)^{1/2}.
+\]
+因此，给定容忍度 $\tau$，我们选择满足
+\[
+\left(
+\frac{\sum_{i>r} \sigma_i^2}{\sum_i \sigma_i^2}
+\right)^{1/2}
+\le \tau
+\]
+的最小秩 $r$。
+在实现中，叶节点与内部合并节点可分别使用不同的容忍度，记为 $\tau_{\mathrm{leaf}}$ 与 $\tau_{\mathrm{merge}}$。
+
+这种写法的好处是，它把“每个节点保留多少通道”转化成“每个节点允许损失多少相对能量”。
+谱衰减快的简单节点会自动停在较低秩，而谱衰减慢的困难节点会自动保留更多通道。
+因此，自适应秩选择的关键不在于简单增大平均秩，而在于按局部难度重新分配秩预算。
+
+\subsection{基于 sketch 的随机化压缩}
+仅靠自适应秩选择还不够。
+在内部节点处，若左右孩子的秩分别为 $r_L$ 和 $r_R$，则父节点在重压缩之前自然会出现一个秩乘积 $r_L r_R$。
+如果先显式构造合并后的大接口矩阵，再对它做普通低秩分解，就会遇到“先膨胀，再压回去”的中间瓶颈。
+为此，本文在合并节点上进一步采用基于 sketch 的随机化压缩：不显式收缩完整的接口矩阵，而是通过算子访问直接恢复其主导子空间\cite{halko2011finding,heddes2026approximating}。
+
+设合并后待压缩的父节点接口为
+\[
+\widetilde M \in \mathbb{R}^{m \times n}.
+\]
+在显式路径中，它可以写成
+\[
+\widetilde M = A_{\mathrm{mat}} B_{\mathrm{mat}}^\top,
+\]
+其中 $A_{\mathrm{mat}}$ 来自输出侧因子的组合，$B_{\mathrm{mat}}$ 来自边界侧因子沿切割标签的收缩。
+随机化压缩真正需要的不是 $\widetilde M$ 的全部条目，而是对线性算子
+\[
+x \mapsto \widetilde M x,
+\qquad
+y \mapsto \widetilde M^\top y
+\]
+的访问。
+在本文的合并结构下，这两个乘法可写为
+\[
+\widetilde M x = A_{\mathrm{mat}} \bigl(B_{\mathrm{mat}}^\top x\bigr),
+\qquad
+\widetilde M^\top y = B_{\mathrm{mat}} \bigl(A_{\mathrm{mat}}^\top y\bigr).
+\]
+因此，整个压缩过程都可以建立在算子应用之上，而不必先显式形成完整的 $\widetilde M$。
+
+在此基础上，我们采用 randomized SVD 的标准流程\cite{halko2011finding}。
+首先生成高斯随机测试矩阵
+\[
+\Omega \in \mathbb{R}^{n \times \ell},
+\qquad
+\Omega_{ij} \sim \mathcal N(0,1),
+\]
+其中 $\ell = k + p$，$k$ 是目标秩的估计规模，$p$ 是 oversampling 参数。
+然后构造样本矩阵
+\[
+Y_0 = \widetilde M \Omega.
+\]
+这里的 $Y_0$ 并不是通过显式矩阵乘法得到，而是通过对 $\Omega$ 逐列或成块应用算子 $\widetilde M$ 得到。
+当谱衰减较慢时，为了更稳定地提取主导子空间，还可以做 $q$ 次幂迭代：
+\[
+Y_{t+1} = \widetilde M \bigl(\widetilde M^\top Y_t\bigr),
+\qquad t=0,1,\ldots,q-1.
+\]
+随后对最终样本矩阵做正交化，得到
+\[
+Q = \mathrm{orth}(Y_q) \in \mathbb{R}^{m \times \ell},
+\]
+其中 $Q$ 近似张成了 $\widetilde M$ 的主导列空间。
+再将原问题压缩到小矩阵
+\[
+M_{proj} = Q^\top \widetilde M \in \mathbb{R}^{\ell \times n}
+\]
+上，并对其做精确 SVD：
+\[
+M_{proj} = \widetilde U \Sigma V^\top.
+\]
+
+到这一步为止，原来的大接口已经被转化成一个小矩阵上的谱截断问题。
+直接采用固定秩可以直接保留前 $r$ 个奇异方向；而本文主线采用基于尾能量的自适应截断：给定合并容忍度 $\tau_{\mathrm{merge}}$，选择满足
+\[
+\left(
+\frac{\sum_{i>r} \sigma_i^2}{\sum_i \sigma_i^2}
+\right)^{1/2}
+\le \tau_{\mathrm{merge}}
+\]
+的最小秩 $r$。
+设据此得到的截断结果为
+\[
+\widetilde M \approx Q \widetilde U_r \Sigma_r V_r^\top,
+\]
+为了与全文统一的分隔状态表示保持一致，我们将其写回为因子形式
+\[
+A = (Q \widetilde U_r) \Sigma_r^{1/2},
+\qquad
+B = V_r \Sigma_r^{1/2},
+\]
+从而得到
+\[
+\widetilde M \approx A B^\top.
+\]
+这里，自适应秩选择决定“最终保留多少通道”，而随机化压缩决定“如何在不显式收缩大接口的情况下找到这些通道”。
+
+\subsection{输出分块、根节点读出与缓存}
+除了上述核心递归外，完整收缩还需要三个与任务设定直接相关的实现机制。
+
+\paragraph{输出分块。}
+为了避免一次性面对完整输出空间，我们只对部分开放标签做分块。
+对固定输出块 $\Omega_b$ 而言，若某些开放腿已被限制到较小的局部索引集，则各子树在输出侧的维度也会随之减小。
+因此，输出分块并不是附加包装，而是直接影响分隔状态规模的组成部分。
+
+\paragraph{根节点读出。}
+当递归合并到根节点时，由于根节点对应整个网络，其边界标签为空。
+这时根状态不再是一般的“输出侧 $\times$ 边界侧”接口矩阵，而是直接退化为当前输出块的稠密张量。
+也就是说，分隔状态递归在根节点自然终止，并转化为当前输出块的读出。
+
+\paragraph{块间缓存。}
+在按块收缩时，不同输出块往往共享大量上游子树。
+若每个块都从头构建整棵树上的所有状态，那么输出分块的潜在收益会被重复计算抵消。
+因此，我们对分隔状态做块间缓存。
+一个状态能否复用，不取决于全局块编号，而取决于该子树真正看到的局部块条件；只要两个输出块在某个子树上的局部切片完全一致，该子树状态就可以直接复用。
+
+\subsection{小结}
+综上，本文方法围绕一个统一对象展开：\emph{分隔状态}。
+划分树规定了这些状态如何被组织，递归合并规定了它们如何在树上向上传播，低秩压缩则保证这一传播在计算上可控。
+输出分块、根节点读出和块间缓存，都服务于这一主线。
+因此，本文的方法可以概括为
+\[
+\text{划分树}
+\;+
+\text{保持输出边界的分隔状态}
+\;+
+\text{递归合并与重压缩}.
+\]
+它近似的不是最终输出，而是在保持输出边界语义不变的前提下，对树上递归传播的内部接口状态做近似。

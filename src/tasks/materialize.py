@@ -40,13 +40,9 @@ class MaterializeTask(BaseTask):
             })
 
         self.method.fit(problem, blocks, self.logcallback)
-        state_dict = self.method.get_state_dict()
-        if not bool(self.cfg.get("save_output_dense", True)) and "dense_hat" in state_dict:
-            state_dict = dict(state_dict)
-            state_dict.pop("dense_hat", None)
         eval_dict = self.evaluate()
         logs = self.logcallback.logs
-        return Result(state_dict=state_dict, eval=eval_dict, logs=logs)
+        return Result(state_dict={}, eval=eval_dict, logs=logs)
 
     def evaluate(self) -> Dict[str, Any]:
         if self.method is None:

@@ -10,7 +10,6 @@ class TaskConfig:
     name: str = "materialize"
     log_level: int = 1
     compute_exact_reference: bool = True
-    save_output_dense: bool = True
 
 
 @dataclass
@@ -44,13 +43,14 @@ class MethodConfig:
     target_rank: int = 2
     max_rank: int = 16
     randomized: bool = True
-    oversample: int = 4
-    n_power_iter: int = 1
+    oversample: int = 1
+    n_power_iter: int = 0
     selective_threshold: int = 0
     compress_min_rank_product: int = 4
     compress_max_exact_size: int = 256
     compress_min_saving_ratio: float = 0.1
     implicit_merge_sketch: bool = True
+    implicit_min_full_rank: int = 192
     adaptive_refine: bool = False
     refine_tol: float = 1e-3
     max_refine_steps: int = 0
@@ -71,10 +71,7 @@ class BlockConfig:
 class ExperimentConfig:
     name: str = "smoke"
     group: str = "dev"
-    tags: List[str] = field(default_factory=list)
-    save_resolved_config: bool = True
-    save_manifest: bool = True
-    write_metrics_json: bool = True
+    protocol: str = "single_run"
 
 
 @dataclass

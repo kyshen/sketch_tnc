@@ -247,6 +247,7 @@ def merge_states(
     compress_max_exact_size: int = 0,
     compress_min_saving_ratio: float = 0.0,
     implicit_merge_sketch: bool = True,
+    implicit_min_full_rank: int = 192,
     rng: np.random.Generator | None = None,
 ) -> tuple[SeparatorState, MergeInfo]:
     open_labels = list(left.open_labels) + list(right.open_labels)
@@ -293,6 +294,7 @@ def merge_states(
             and bool(implicit_merge_sketch)
             and min(open_flat, boundary_flat) > 1
             and full_rank > 1
+            and full_rank >= int(implicit_min_full_rank)
         )
         if use_implicit_path:
             apply_A, apply_AT, apply_B, apply_BT = _make_merge_linear_ops(

@@ -1,8 +1,0 @@
-name: paper
-group: paper
-tags:
-  - benchmark
-  - paper
-save_resolved_config: true
-save_manifest: true
-write_metrics_json: true

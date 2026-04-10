@@ -1,0 +1,699 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.3 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated by
+% biber as required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+
+\refsection{0}
+  \datalist[entry]{nyt/global//global/global/global}
+    \entry{charikar2004finding}{article}{}{}
+      \name{author}{3}{}{%
+        {{hash=e1b3700a6d5248ffa34baab20bc00fa5}{%
+           family={Charikar},
+           familyi={C\bibinitperiod},
+           given={Moses},
+           giveni={M\bibinitperiod}}}%
+        {{hash=983d591f2f65ee1e0373cdf4378da02d}{%
+           family={Chen},
+           familyi={C\bibinitperiod},
+           given={Kevin},
+           giveni={K\bibinitperiod}}}%
+        {{hash=58fd7d5e0555331a2b10176e0e8eb0c6}{%
+           family={Farach-Colton},
+           familyi={F\bibinithyphendelim C\bibinitperiod},
+           given={Martin},
+           giveni={M\bibinitperiod}}}%
+      }
+      \strng{namehash}{170dbc23e224a3b996e559f0d2c36612}
+      \strng{fullhash}{170dbc23e224a3b996e559f0d2c36612}
+      \strng{fullhashraw}{170dbc23e224a3b996e559f0d2c36612}
+      \strng{bibnamehash}{170dbc23e224a3b996e559f0d2c36612}
+      \strng{authorbibnamehash}{170dbc23e224a3b996e559f0d2c36612}
+      \strng{authornamehash}{170dbc23e224a3b996e559f0d2c36612}
+      \strng{authorfullhash}{170dbc23e224a3b996e559f0d2c36612}
+      \strng{authorfullhashraw}{170dbc23e224a3b996e559f0d2c36612}
+      \field{sortinit}{C}
+      \field{sortinithash}{4d103a86280481745c9c897c925753c0}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Theoretical Computer Science}
+      \field{number}{1}
+      \field{title}{Finding Frequent Items in Data Streams}
+      \field{volume}{312}
+      \field{year}{2004}
+      \field{pages}{3\bibrangedash 15}
+      \range{pages}{13}
+      \verb{doi}
+      \verb 10.1016/S0304-3975(03)00400-6
+      \endverb
+    \endentry
+    \entry{dechter1996bucket}{inproceedings}{}{}
+      \name{author}{1}{}{%
+        {{hash=78938a198b4931e837a6994d729d36f1}{%
+           family={Dechter},
+           familyi={D\bibinitperiod},
+           given={Rina},
+           giveni={R\bibinitperiod}}}%
+      }
+      \strng{namehash}{78938a198b4931e837a6994d729d36f1}
+      \strng{fullhash}{78938a198b4931e837a6994d729d36f1}
+      \strng{fullhashraw}{78938a198b4931e837a6994d729d36f1}
+      \strng{bibnamehash}{78938a198b4931e837a6994d729d36f1}
+      \strng{authorbibnamehash}{78938a198b4931e837a6994d729d36f1}
+      \strng{authornamehash}{78938a198b4931e837a6994d729d36f1}
+      \strng{authorfullhash}{78938a198b4931e837a6994d729d36f1}
+      \strng{authorfullhashraw}{78938a198b4931e837a6994d729d36f1}
+      \field{extraname}{1}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Proceedings of the Twelfth Conference on Uncertainty in Artificial Intelligence}
+      \field{title}{Bucket Elimination: A Unifying Framework for Probabilistic Inference}
+      \field{year}{1996}
+      \field{pages}{211\bibrangedash 219}
+      \range{pages}{9}
+    \endentry
+    \entry{dechter1998bucket}{incollection}{}{}
+      \name{author}{1}{}{%
+        {{hash=78938a198b4931e837a6994d729d36f1}{%
+           family={Dechter},
+           familyi={D\bibinitperiod},
+           given={Rina},
+           giveni={R\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Springer}%
+      }
+      \strng{namehash}{78938a198b4931e837a6994d729d36f1}
+      \strng{fullhash}{78938a198b4931e837a6994d729d36f1}
+      \strng{fullhashraw}{78938a198b4931e837a6994d729d36f1}
+      \strng{bibnamehash}{78938a198b4931e837a6994d729d36f1}
+      \strng{authorbibnamehash}{78938a198b4931e837a6994d729d36f1}
+      \strng{authornamehash}{78938a198b4931e837a6994d729d36f1}
+      \strng{authorfullhash}{78938a198b4931e837a6994d729d36f1}
+      \strng{authorfullhashraw}{78938a198b4931e837a6994d729d36f1}
+      \field{extraname}{2}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Learning in graphical models}
+      \field{title}{Bucket elimination: A unifying framework for probabilistic inference}
+      \field{year}{1998}
+      \field{pages}{75\bibrangedash 104}
+      \range{pages}{30}
+    \endentry
+    \entry{dechter1997mini}{inproceedings}{}{}
+      \name{author}{2}{}{%
+        {{hash=78938a198b4931e837a6994d729d36f1}{%
+           family={Dechter},
+           familyi={D\bibinitperiod},
+           given={Rina},
+           giveni={R\bibinitperiod}}}%
+        {{hash=7711557abf7c3d508d1fa84cab27626e}{%
+           family={Rish},
+           familyi={R\bibinitperiod},
+           given={Irina},
+           giveni={I\bibinitperiod}}}%
+      }
+      \strng{namehash}{ca3aaeed239c37736f9415eb9db3a451}
+      \strng{fullhash}{ca3aaeed239c37736f9415eb9db3a451}
+      \strng{fullhashraw}{ca3aaeed239c37736f9415eb9db3a451}
+      \strng{bibnamehash}{ca3aaeed239c37736f9415eb9db3a451}
+      \strng{authorbibnamehash}{ca3aaeed239c37736f9415eb9db3a451}
+      \strng{authornamehash}{ca3aaeed239c37736f9415eb9db3a451}
+      \strng{authorfullhash}{ca3aaeed239c37736f9415eb9db3a451}
+      \strng{authorfullhashraw}{ca3aaeed239c37736f9415eb9db3a451}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Proceedings of the Fifteenth International Joint Conference on Artificial Intelligence}
+      \field{title}{Mini-Buckets: A General Scheme for Generating Approximations in Automated Reasoning}
+      \field{year}{1997}
+      \field{pages}{1297\bibrangedash 1303}
+      \range{pages}{7}
+    \endentry
+    \entry{dumitrescu2018benchmarking}{article}{}{}
+      \name{author}{6}{}{%
+        {{hash=dc349a0159dd70b7c1e00d26f8c068eb}{%
+           family={Dumitrescu},
+           familyi={D\bibinitperiod},
+           given={Eugene\bibnamedelima F.},
+           giveni={E\bibinitperiod\bibinitdelim F\bibinitperiod}}}%
+        {{hash=1db7d5fb321cf3241fe253c0a970c955}{%
+           family={Fisher},
+           familyi={F\bibinitperiod},
+           given={Allison\bibnamedelima L.},
+           giveni={A\bibinitperiod\bibinitdelim L\bibinitperiod}}}%
+        {{hash=3a1743044fd960c5c971cc36aa237e46}{%
+           family={Goodrich},
+           familyi={G\bibinitperiod},
+           given={Timothy\bibnamedelima D.},
+           giveni={T\bibinitperiod\bibinitdelim D\bibinitperiod}}}%
+        {{hash=963b22ba5e47cd073c7fc1a754ab2a55}{%
+           family={Humble},
+           familyi={H\bibinitperiod},
+           given={Travis\bibnamedelima S.},
+           giveni={T\bibinitperiod\bibinitdelim S\bibinitperiod}}}%
+        {{hash=bac9e0b5db0bd82415193efb4112aac7}{%
+           family={Sullivan},
+           familyi={S\bibinitperiod},
+           given={Blair\bibnamedelima D.},
+           giveni={B\bibinitperiod\bibinitdelim D\bibinitperiod}}}%
+        {{hash=2d307b7149e7162862ea06475d54fc69}{%
+           family={Wright},
+           familyi={W\bibinitperiod},
+           given={Andrew\bibnamedelima L.},
+           giveni={A\bibinitperiod\bibinitdelim L\bibinitperiod}}}%
+      }
+      \strng{namehash}{b1b7e88e0fd47cf0aa962a02b046aa35}
+      \strng{fullhash}{f52370fa9c1e7e9e12aa55de737fd372}
+      \strng{fullhashraw}{f52370fa9c1e7e9e12aa55de737fd372}
+      \strng{bibnamehash}{f52370fa9c1e7e9e12aa55de737fd372}
+      \strng{authorbibnamehash}{f52370fa9c1e7e9e12aa55de737fd372}
+      \strng{authornamehash}{b1b7e88e0fd47cf0aa962a02b046aa35}
+      \strng{authorfullhash}{f52370fa9c1e7e9e12aa55de737fd372}
+      \strng{authorfullhashraw}{f52370fa9c1e7e9e12aa55de737fd372}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{PLOS ONE}
+      \field{number}{12}
+      \field{title}{Benchmarking Treewidth as a Practical Component of Tensor Network Simulations}
+      \field{volume}{13}
+      \field{year}{2018}
+      \field{pages}{e0207827}
+      \range{pages}{-1}
+      \verb{doi}
+      \verb 10.1371/journal.pone.0207827
+      \endverb
+    \endentry
+    \entry{gray2024hyperoptimized}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=f80d9df3eff02314b535af35952e6013}{%
+           family={Gray},
+           familyi={G\bibinitperiod},
+           given={Johnnie},
+           giveni={J\bibinitperiod}}}%
+        {{hash=9fa3b07f3d74fe2c76629514daf4277d}{%
+           family={Chan},
+           familyi={C\bibinitperiod},
+           given={Garnet\bibnamedelima Kin-Lic},
+           giveni={G\bibinitperiod\bibinitdelim K\bibinithyphendelim L\bibinitperiod}}}%
+      }
+      \strng{namehash}{637ccb289ee9e6ac0a2315741eaab785}
+      \strng{fullhash}{637ccb289ee9e6ac0a2315741eaab785}
+      \strng{fullhashraw}{637ccb289ee9e6ac0a2315741eaab785}
+      \strng{bibnamehash}{637ccb289ee9e6ac0a2315741eaab785}
+      \strng{authorbibnamehash}{637ccb289ee9e6ac0a2315741eaab785}
+      \strng{authornamehash}{637ccb289ee9e6ac0a2315741eaab785}
+      \strng{authorfullhash}{637ccb289ee9e6ac0a2315741eaab785}
+      \strng{authorfullhashraw}{637ccb289ee9e6ac0a2315741eaab785}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Physical Review X}
+      \field{number}{1}
+      \field{title}{Hyperoptimized Approximate Contraction of Tensor Networks with Arbitrary Geometry}
+      \field{volume}{14}
+      \field{year}{2024}
+      \field{pages}{011009}
+      \range{pages}{1}
+      \verb{doi}
+      \verb 10.1103/PhysRevX.14.011009
+      \endverb
+    \endentry
+    \entry{gray2021hyperoptimized}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=f80d9df3eff02314b535af35952e6013}{%
+           family={Gray},
+           familyi={G\bibinitperiod},
+           given={Johnnie},
+           giveni={J\bibinitperiod}}}%
+        {{hash=7d70691c25d101221f5eaba908fb81d2}{%
+           family={Kourtis},
+           familyi={K\bibinitperiod},
+           given={Stefanos},
+           giveni={S\bibinitperiod}}}%
+      }
+      \strng{namehash}{105ddd36b8a5c5374234d15743fe0efa}
+      \strng{fullhash}{105ddd36b8a5c5374234d15743fe0efa}
+      \strng{fullhashraw}{105ddd36b8a5c5374234d15743fe0efa}
+      \strng{bibnamehash}{105ddd36b8a5c5374234d15743fe0efa}
+      \strng{authorbibnamehash}{105ddd36b8a5c5374234d15743fe0efa}
+      \strng{authornamehash}{105ddd36b8a5c5374234d15743fe0efa}
+      \strng{authorfullhash}{105ddd36b8a5c5374234d15743fe0efa}
+      \strng{authorfullhashraw}{105ddd36b8a5c5374234d15743fe0efa}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Quantum}
+      \field{title}{Hyper-optimized Tensor Network Contraction}
+      \field{volume}{5}
+      \field{year}{2021}
+      \field{pages}{410}
+      \range{pages}{1}
+      \verb{doi}
+      \verb 10.22331/Q-2021-03-15-410
+      \endverb
+    \endentry
+    \entry{halko2011finding}{article}{}{}
+      \name{author}{3}{}{%
+        {{hash=1bc135911346a52970ee3892e929a995}{%
+           family={Halko},
+           familyi={H\bibinitperiod},
+           given={Nathan},
+           giveni={N\bibinitperiod}}}%
+        {{hash=6784940298ce7e745f88fc73bc8c07b7}{%
+           family={Martinsson},
+           familyi={M\bibinitperiod},
+           given={Per-Gunnar},
+           giveni={P\bibinithyphendelim G\bibinitperiod}}}%
+        {{hash=74341ae37266ceb0c254df25bcf296cd}{%
+           family={Tropp},
+           familyi={T\bibinitperiod},
+           given={Joel\bibnamedelima A.},
+           giveni={J\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+      }
+      \strng{namehash}{0bf54c237f02c445d5045a5bd048e969}
+      \strng{fullhash}{0bf54c237f02c445d5045a5bd048e969}
+      \strng{fullhashraw}{0bf54c237f02c445d5045a5bd048e969}
+      \strng{bibnamehash}{0bf54c237f02c445d5045a5bd048e969}
+      \strng{authorbibnamehash}{0bf54c237f02c445d5045a5bd048e969}
+      \strng{authornamehash}{0bf54c237f02c445d5045a5bd048e969}
+      \strng{authorfullhash}{0bf54c237f02c445d5045a5bd048e969}
+      \strng{authorfullhashraw}{0bf54c237f02c445d5045a5bd048e969}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{SIAM Review}
+      \field{number}{2}
+      \field{title}{Finding Structure with Randomness: Probabilistic Algorithms for Constructing Approximate Matrix Decompositions}
+      \field{volume}{53}
+      \field{year}{2011}
+      \field{pages}{217\bibrangedash 288}
+      \range{pages}{72}
+      \verb{doi}
+      \verb 10.1137/090771806
+      \endverb
+    \endentry
+    \entry{heddes2026approximating}{article}{}{}
+      \name{author}{4}{}{%
+        {{hash=783862434aca53a0aa8ce4f1175ccc08}{%
+           family={Heddes},
+           familyi={H\bibinitperiod},
+           given={Mike},
+           giveni={M\bibinitperiod}}}%
+        {{hash=984e9ea1b40aa0e3751e6a273d3eb6b1}{%
+           family={Nunes},
+           familyi={N\bibinitperiod},
+           given={Igor},
+           giveni={I\bibinitperiod}}}%
+        {{hash=19a117d9b130bf92b99edbdfdf5b3124}{%
+           family={Givargis},
+           familyi={G\bibinitperiod},
+           given={Tony},
+           giveni={T\bibinitperiod}}}%
+        {{hash=e5a211d380ad0217a5e413c0516a3b0f}{%
+           family={Nicolau},
+           familyi={N\bibinitperiod},
+           given={Alex},
+           giveni={A\bibinitperiod}}}%
+      }
+      \strng{namehash}{2ca48ff0282d3ab8c1049f8acdc79532}
+      \strng{fullhash}{7936db6417ba6770965249375747946c}
+      \strng{fullhashraw}{7936db6417ba6770965249375747946c}
+      \strng{bibnamehash}{7936db6417ba6770965249375747946c}
+      \strng{authorbibnamehash}{7936db6417ba6770965249375747946c}
+      \strng{authornamehash}{2ca48ff0282d3ab8c1049f8acdc79532}
+      \strng{authorfullhash}{7936db6417ba6770965249375747946c}
+      \strng{authorfullhashraw}{7936db6417ba6770965249375747946c}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{arXiv preprint arXiv:2603.07387}
+      \field{title}{Approximating Tensor Network Contraction with Sketches}
+      \field{year}{2026}
+    \endentry
+    \entry{huang2021efficient}{article}{}{}
+      \true{moreauthor}
+      \true{morelabelname}
+      \name{author}{10}{}{%
+        {{hash=dccae63e32834d666bb35e92f5f122dc}{%
+           family={Huang},
+           familyi={H\bibinitperiod},
+           given={Cupjin},
+           giveni={C\bibinitperiod}}}%
+        {{hash=d1aaf45efe772e31d61fe4555691463a}{%
+           family={Zhang},
+           familyi={Z\bibinitperiod},
+           given={Fang},
+           giveni={F\bibinitperiod}}}%
+        {{hash=2a839e605c1060e49ae2167b1709c4af}{%
+           family={Newman},
+           familyi={N\bibinitperiod},
+           given={Michael},
+           giveni={M\bibinitperiod}}}%
+        {{hash=7438c8573c0f369266b92ac9ea998ba8}{%
+           family={Ni},
+           familyi={N\bibinitperiod},
+           given={Xiaotong},
+           giveni={X\bibinitperiod}}}%
+        {{hash=91bea7d5f45249ad419b9a37dac4792b}{%
+           family={Ding},
+           familyi={D\bibinitperiod},
+           given={Dawei},
+           giveni={D\bibinitperiod}}}%
+        {{hash=26b85fea2427c418c32b9002bac28690}{%
+           family={Cai},
+           familyi={C\bibinitperiod},
+           given={Junjie},
+           giveni={J\bibinitperiod}}}%
+        {{hash=91c0e330b6487ea1279877a28be35531}{%
+           family={Gao},
+           familyi={G\bibinitperiod},
+           given={Xun},
+           giveni={X\bibinitperiod}}}%
+        {{hash=2936260b45e10af16c77898f611d3038}{%
+           family={Wang},
+           familyi={W\bibinitperiod},
+           given={Tenghui},
+           giveni={T\bibinitperiod}}}%
+        {{hash=ec0dd69d6bd2546effecdcf0c41c0000}{%
+           family={Wu},
+           familyi={W\bibinitperiod},
+           given={Feng},
+           giveni={F\bibinitperiod}}}%
+        {{hash=6e1c5c3e31840aedee5a1176dccbb0de}{%
+           family={Zhang},
+           familyi={Z\bibinitperiod},
+           given={Gengyan},
+           giveni={G\bibinitperiod}}}%
+      }
+      \strng{namehash}{51940bd6527c260bfc4392aa1804c246}
+      \strng{fullhash}{a97d64564c4f56dd42bf4ae0f67361e3}
+      \strng{fullhashraw}{a97d64564c4f56dd42bf4ae0f67361e3}
+      \strng{bibnamehash}{a97d64564c4f56dd42bf4ae0f67361e3}
+      \strng{authorbibnamehash}{a97d64564c4f56dd42bf4ae0f67361e3}
+      \strng{authornamehash}{51940bd6527c260bfc4392aa1804c246}
+      \strng{authorfullhash}{a97d64564c4f56dd42bf4ae0f67361e3}
+      \strng{authorfullhashraw}{a97d64564c4f56dd42bf4ae0f67361e3}
+      \field{sortinit}{H}
+      \field{sortinithash}{23a3aa7c24e56cfa16945d55545109b5}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Nature Computational Science}
+      \field{title}{Efficient Parallelization of Tensor Network Contraction for Simulating Quantum Computation}
+      \field{volume}{1}
+      \field{year}{2021}
+      \field{pages}{578\bibrangedash 587}
+      \range{pages}{10}
+      \verb{doi}
+      \verb 10.1038/s43588-021-00119-7
+      \endverb
+    \endentry
+    \entry{jakes2019carving}{article}{}{}
+      \name{author}{3}{}{%
+        {{hash=f06b035881991d185c1831f2a3696d34}{%
+           family={Jakes-Schauer},
+           familyi={J\bibinithyphendelim S\bibinitperiod},
+           given={Jonathan},
+           giveni={J\bibinitperiod}}}%
+        {{hash=b1df89a3952a2af8a5c7edcd989fdfac}{%
+           family={Anekstein},
+           familyi={A\bibinitperiod},
+           given={David},
+           giveni={D\bibinitperiod}}}%
+        {{hash=6180b4d894f04415a1892fd9adafcf47}{%
+           family={Wocjan},
+           familyi={W\bibinitperiod},
+           given={Pawel},
+           giveni={P\bibinitperiod}}}%
+      }
+      \strng{namehash}{dfa8f74e35d977afbe26a13826dbc556}
+      \strng{fullhash}{dfa8f74e35d977afbe26a13826dbc556}
+      \strng{fullhashraw}{dfa8f74e35d977afbe26a13826dbc556}
+      \strng{bibnamehash}{dfa8f74e35d977afbe26a13826dbc556}
+      \strng{authorbibnamehash}{dfa8f74e35d977afbe26a13826dbc556}
+      \strng{authornamehash}{dfa8f74e35d977afbe26a13826dbc556}
+      \strng{authorfullhash}{dfa8f74e35d977afbe26a13826dbc556}
+      \strng{authorfullhashraw}{dfa8f74e35d977afbe26a13826dbc556}
+      \field{sortinit}{J}
+      \field{sortinithash}{b2f54a9081ace9966a7cb9413811edb4}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{arXiv preprint arXiv:1908.11034}
+      \field{title}{Carving-width and Contraction Trees for Tensor Networks}
+      \field{year}{2019}
+    \endentry
+    \entry{levin2007trg}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=b894ed954a34072e79a8714d134644ba}{%
+           family={Levin},
+           familyi={L\bibinitperiod},
+           given={Michael},
+           giveni={M\bibinitperiod}}}%
+        {{hash=2a587308e49f06941d27c511959d6082}{%
+           family={Nave},
+           familyi={N\bibinitperiod},
+           given={Cody\bibnamedelima P.},
+           giveni={C\bibinitperiod\bibinitdelim P\bibinitperiod}}}%
+      }
+      \strng{namehash}{9bb1db1ef751cfafac7a0e20b6517592}
+      \strng{fullhash}{9bb1db1ef751cfafac7a0e20b6517592}
+      \strng{fullhashraw}{9bb1db1ef751cfafac7a0e20b6517592}
+      \strng{bibnamehash}{9bb1db1ef751cfafac7a0e20b6517592}
+      \strng{authorbibnamehash}{9bb1db1ef751cfafac7a0e20b6517592}
+      \strng{authornamehash}{9bb1db1ef751cfafac7a0e20b6517592}
+      \strng{authorfullhash}{9bb1db1ef751cfafac7a0e20b6517592}
+      \strng{authorfullhashraw}{9bb1db1ef751cfafac7a0e20b6517592}
+      \field{sortinit}{L}
+      \field{sortinithash}{7c47d417cecb1f4bd38d1825c427a61a}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Physical Review Letters}
+      \field{number}{12}
+      \field{title}{Tensor Renormalization Group Approach to Two-Dimensional Classical Lattice Models}
+      \field{volume}{99}
+      \field{year}{2007}
+      \field{pages}{120601}
+      \range{pages}{1}
+      \verb{doi}
+      \verb 10.1103/PhysRevLett.99.120601
+      \endverb
+    \endentry
+    \entry{ma2024approximate}{article}{}{}
+      \name{author}{4}{}{%
+        {{hash=8fe83fe435192eece5bbdf2054ab4fd0}{%
+           family={Ma},
+           familyi={M\bibinitperiod},
+           given={Linjian},
+           giveni={L\bibinitperiod}}}%
+        {{hash=345a54bc80ea1ce67a068f53401d574c}{%
+           family={Fishman},
+           familyi={F\bibinitperiod},
+           given={Matthew\bibnamedelima T.},
+           giveni={M\bibinitperiod\bibinitdelim T\bibinitperiod}}}%
+        {{hash=475b4be3a25b303ea6af7dc73ffd4c88}{%
+           family={Stoudenmire},
+           familyi={S\bibinitperiod},
+           given={E.\bibnamedelimi Miles},
+           giveni={E\bibinitperiod\bibinitdelim M\bibinitperiod}}}%
+        {{hash=9f6f65160fbc777682cba04e745335b3}{%
+           family={Solomonik},
+           familyi={S\bibinitperiod},
+           given={Edgar},
+           giveni={E\bibinitperiod}}}%
+      }
+      \strng{namehash}{d15b3cc636d522c1fa5adbb0c9470ba5}
+      \strng{fullhash}{5ed3e55207fba0828042e6b77a43bd4d}
+      \strng{fullhashraw}{5ed3e55207fba0828042e6b77a43bd4d}
+      \strng{bibnamehash}{5ed3e55207fba0828042e6b77a43bd4d}
+      \strng{authorbibnamehash}{5ed3e55207fba0828042e6b77a43bd4d}
+      \strng{authornamehash}{d15b3cc636d522c1fa5adbb0c9470ba5}
+      \strng{authorfullhash}{5ed3e55207fba0828042e6b77a43bd4d}
+      \strng{authorfullhashraw}{5ed3e55207fba0828042e6b77a43bd4d}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Quantum}
+      \field{title}{Approximate Contraction of Arbitrary Tensor Networks with a Flexible and Efficient Density Matrix Algorithm}
+      \field{volume}{8}
+      \field{year}{2024}
+      \field{pages}{1580}
+      \range{pages}{1}
+      \verb{doi}
+      \verb 10.22331/q-2024-12-27-1580
+      \endverb
+    \endentry
+    \entry{markov2008simulating}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=95d15e0b330baefe62d85603a4a9b667}{%
+           family={Markov},
+           familyi={M\bibinitperiod},
+           given={Igor\bibnamedelima L.},
+           giveni={I\bibinitperiod\bibinitdelim L\bibinitperiod}}}%
+        {{hash=c0ef269d75b4edbc0ad841549bae2ff0}{%
+           family={Shi},
+           familyi={S\bibinitperiod},
+           given={Yaoyun},
+           giveni={Y\bibinitperiod}}}%
+      }
+      \strng{namehash}{0df29ffb85ec21b589657ce0f8ef4d90}
+      \strng{fullhash}{0df29ffb85ec21b589657ce0f8ef4d90}
+      \strng{fullhashraw}{0df29ffb85ec21b589657ce0f8ef4d90}
+      \strng{bibnamehash}{0df29ffb85ec21b589657ce0f8ef4d90}
+      \strng{authorbibnamehash}{0df29ffb85ec21b589657ce0f8ef4d90}
+      \strng{authornamehash}{0df29ffb85ec21b589657ce0f8ef4d90}
+      \strng{authorfullhash}{0df29ffb85ec21b589657ce0f8ef4d90}
+      \strng{authorfullhashraw}{0df29ffb85ec21b589657ce0f8ef4d90}
+      \field{sortinit}{M}
+      \field{sortinithash}{4625c616857f13d17ce56f7d4f97d451}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{SIAM Journal on Computing}
+      \field{number}{3}
+      \field{title}{Simulating Quantum Computation by Contracting Tensor Networks}
+      \field{volume}{38}
+      \field{year}{2008}
+      \field{pages}{963\bibrangedash 981}
+      \range{pages}{19}
+      \verb{doi}
+      \verb 10.1137/050644756
+      \endverb
+    \endentry
+    \entry{orus2014practical}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=220e5a12680385b58fbfac3e4405944d}{%
+           family={Orús},
+           familyi={O\bibinitperiod},
+           given={Román},
+           giveni={R\bibinitperiod}}}%
+      }
+      \strng{namehash}{220e5a12680385b58fbfac3e4405944d}
+      \strng{fullhash}{220e5a12680385b58fbfac3e4405944d}
+      \strng{fullhashraw}{220e5a12680385b58fbfac3e4405944d}
+      \strng{bibnamehash}{220e5a12680385b58fbfac3e4405944d}
+      \strng{authorbibnamehash}{220e5a12680385b58fbfac3e4405944d}
+      \strng{authornamehash}{220e5a12680385b58fbfac3e4405944d}
+      \strng{authorfullhash}{220e5a12680385b58fbfac3e4405944d}
+      \strng{authorfullhashraw}{220e5a12680385b58fbfac3e4405944d}
+      \field{sortinit}{O}
+      \field{sortinithash}{2cd7140a07aea5341f9e2771efe90aae}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Annals of Physics}
+      \field{title}{A Practical Introduction to Tensor Networks: Matrix Product States and Projected Entangled Pair States}
+      \field{volume}{349}
+      \field{year}{2014}
+      \field{pages}{117\bibrangedash 158}
+      \range{pages}{42}
+      \verb{doi}
+      \verb 10.1016/j.aop.2014.06.013
+      \endverb
+    \endentry
+    \entry{pan2020contracting}{article}{}{}
+      \name{author}{4}{}{%
+        {{hash=bacbbbe66d531fc28af37fab0097a611}{%
+           family={Pan},
+           familyi={P\bibinitperiod},
+           given={Feng},
+           giveni={F\bibinitperiod}}}%
+        {{hash=332c022af36b98e3127f00e95d561cec}{%
+           family={Zhou},
+           familyi={Z\bibinitperiod},
+           given={Pengfei},
+           giveni={P\bibinitperiod}}}%
+        {{hash=083f1f30bbb76c8cf471bc64ac1a7408}{%
+           family={Li},
+           familyi={L\bibinitperiod},
+           given={Sujie},
+           giveni={S\bibinitperiod}}}%
+        {{hash=e894575928482651e4b5b7b26b35fd3e}{%
+           family={Zhang},
+           familyi={Z\bibinitperiod},
+           given={Pan},
+           giveni={P\bibinitperiod}}}%
+      }
+      \strng{namehash}{8991079b13cd866bd5d0b26d7372e2a1}
+      \strng{fullhash}{663b121d008c2102f31e263cf88351b8}
+      \strng{fullhashraw}{663b121d008c2102f31e263cf88351b8}
+      \strng{bibnamehash}{663b121d008c2102f31e263cf88351b8}
+      \strng{authorbibnamehash}{663b121d008c2102f31e263cf88351b8}
+      \strng{authornamehash}{8991079b13cd866bd5d0b26d7372e2a1}
+      \strng{authorfullhash}{663b121d008c2102f31e263cf88351b8}
+      \strng{authorfullhashraw}{663b121d008c2102f31e263cf88351b8}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Physical Review Letters}
+      \field{number}{6}
+      \field{title}{Contracting Arbitrary Tensor Networks: General Approximate Algorithm and Applications in Graphical Models and Quantum Circuit Simulations}
+      \field{volume}{125}
+      \field{year}{2020}
+      \field{pages}{060503}
+      \range{pages}{1}
+      \verb{doi}
+      \verb 10.1103/PhysRevLett.125.060503
+      \endverb
+    \endentry
+    \entry{pham2013fast}{inproceedings}{}{}
+      \name{author}{2}{}{%
+        {{hash=28723ab00b726131c84d13ab2ec9cc8c}{%
+           family={Pham},
+           familyi={P\bibinitperiod},
+           given={Ninh},
+           giveni={N\bibinitperiod}}}%
+        {{hash=88974e5158546cc2704aa597baa5ac09}{%
+           family={Pagh},
+           familyi={P\bibinitperiod},
+           given={Rasmus},
+           giveni={R\bibinitperiod}}}%
+      }
+      \strng{namehash}{b8bbc75fded5bd059a7b7ee44ca974d3}
+      \strng{fullhash}{b8bbc75fded5bd059a7b7ee44ca974d3}
+      \strng{fullhashraw}{b8bbc75fded5bd059a7b7ee44ca974d3}
+      \strng{bibnamehash}{b8bbc75fded5bd059a7b7ee44ca974d3}
+      \strng{authorbibnamehash}{b8bbc75fded5bd059a7b7ee44ca974d3}
+      \strng{authornamehash}{b8bbc75fded5bd059a7b7ee44ca974d3}
+      \strng{authorfullhash}{b8bbc75fded5bd059a7b7ee44ca974d3}
+      \strng{authorfullhashraw}{b8bbc75fded5bd059a7b7ee44ca974d3}
+      \field{sortinit}{P}
+      \field{sortinithash}{ff3bcf24f47321b42cb156c2cc8a8422}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{booktitle}{Proceedings of the 19th ACM SIGKDD International Conference on Knowledge Discovery and Data Mining}
+      \field{title}{Fast and Scalable Polynomial Kernels via Explicit Feature Maps}
+      \field{year}{2013}
+      \field{pages}{239\bibrangedash 247}
+      \range{pages}{9}
+      \verb{doi}
+      \verb 10.1145/2487575.2487591
+      \endverb
+    \endentry
+  \enddatalist
+\endrefsection
+\endinput
+
