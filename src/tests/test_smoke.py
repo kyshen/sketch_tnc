@@ -1,6 +1,6 @@
 from src.block import OutputBlocker
 from src.data import GraphTNData
-from src.methods import BOSSMaterialization, ExactMaterialization
+from src.methods import ASTNCMaterialization, ExactMaterialization
 from src.tasks import MaterializeTask
 
 
@@ -15,9 +15,9 @@ def test_ring_exact_smoke():
     assert abs(result.eval["rel_error"]) < 1e-12
 
 
-def test_ring_boss_smoke():
+def test_ring_astnc_smoke():
     data = GraphTNData(generator="ring", num_nodes=5, phys_dim=2, bond_dim=3, open_legs_per_node=1, seed=0)
-    method = BOSSMaterialization(target_rank=2, max_rank=8, randomized=True, oversample=2, n_power_iter=1, selective_threshold=0, adaptive_refine=False)
+    method = ASTNCMaterialization(target_rank=2, max_rank=8, randomized=True, oversample=2, n_power_iter=1, selective_threshold=0, adaptive_refine=False)
     task = MaterializeTask(log_level=1, compute_exact_reference=True)
     block = OutputBlocker(enabled=True, block_labels=2, chunk_size=1)
     task.setup(data, method, block)

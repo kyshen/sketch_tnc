@@ -1,7 +1,7 @@
 __all__ = [
     "GraphTNData",
     "ExactMaterialization",
-    "BOSSMaterialization",
+    "ASTNCMaterialization",
     "MaterializeTask",
     "OutputBlocker",
 ]
@@ -16,10 +16,10 @@ def __getattr__(name: str):
         from .methods import ExactMaterialization
 
         return ExactMaterialization
-    if name == "BOSSMaterialization":
-        from .methods import BOSSMaterialization
+    if name == "ASTNCMaterialization":
+        from .methods import ASTNCMaterialization
 
-        return BOSSMaterialization
+        return ASTNCMaterialization
     if name == "MaterializeTask":
         from .tasks import MaterializeTask
 

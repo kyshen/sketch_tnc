@@ -1,4 +1,4 @@
-# BOSS-TNC Minimal Experiment Runner
+# ASTNC-TNC Minimal Experiment Runner
 
 This project is intentionally trimmed to one workflow:
 
@@ -7,11 +7,11 @@ This project is intentionally trimmed to one workflow:
 ## Structure
 
 - `configs/`: minimal Hydra config groups (`data`, `method`, `task`, `block`, `experiment`, `hydra`)
-- `src/methods/`: core methods and baselines (`boss`, `exact`)
+- `src/methods/`: core methods and baselines (`astnc`, `exact`)
 - `src/tasks/`: task execution and metric evaluation
 - `src/metrics.py`: metric computation
 - `src/runner/`: unified runner + table export
-- `src/core/`: tensor-network and BOSS internals
+- `src/core/`: tensor-network and ASTNC internals
 
 ## Install
 
@@ -26,7 +26,7 @@ python run.py experiment.name=ring_exact data=ring method=exact
 ```
 
 ```bash
-python run.py experiment.name=ring_boss data=ring method=boss \
+python run.py experiment.name=ring_astnc data=ring method=astnc \
   method.rank_policy=adaptive method.leaf_tol=0.02 method.merge_tol=0.05 \
   seed=7
 ```

@@ -30,8 +30,8 @@ class DataConfig:
 
 @dataclass
 class MethodConfig:
-    _target_: str = "src.methods.BOSSMaterialization"
-    name: str = "boss"
+    _target_: str = "src.methods.ASTNCMaterialization"
+    name: str = "astnc"
     optimize: str = "greedy"
     seed: int = 0
     rank_policy: str = "adaptive"

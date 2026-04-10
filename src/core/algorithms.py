@@ -28,7 +28,7 @@ class MaterializationResult:
 
 
 @dataclass
-class BossResult:
+class ASTNCResult:
     dense: np.ndarray
     contract_time_sec: float
     emit_time_sec: float
@@ -36,7 +36,7 @@ class BossResult:
 
 
 @dataclass
-class BossRuntimeStats:
+class ASTNCRuntimeStats:
     leaf_states_built: int = 0
     internal_states_built: int = 0
     peak_rank: int = 0
@@ -231,7 +231,7 @@ def _leaf_state(
     slice_map,
     cfg,
     rng: np.random.Generator | None = None,
-    stats: BossRuntimeStats | None = None,
+    stats: ASTNCRuntimeStats | None = None,
     local_leaf_tol: float | None = None,
 ) -> SeparatorState:
     nid = next(iter(part.node_ids))
@@ -295,7 +295,7 @@ def _build_state(
     cfg,
     *,
     cache: SeparatorStateCache | None = None,
-    stats: BossRuntimeStats | None = None,
+    stats: ASTNCRuntimeStats | None = None,
     base_seed: int = 0,
     depth_info: Dict[tuple[int, ...], tuple[int, int, int]] | None = None,
     max_depth: int = 0,
@@ -378,7 +378,7 @@ def _maybe_refine_block(
     approx_block: np.ndarray,
     cfg,
     cache: SeparatorStateCache | None = None,
-    stats: BossRuntimeStats | None = None,
+    stats: ASTNCRuntimeStats | None = None,
     base_seed: int = 0,
 ) -> tuple[np.ndarray, int]:
     if not bool(getattr(cfg, "adaptive_refine", False)):
@@ -415,14 +415,14 @@ def _maybe_refine_block(
     return current, target_rank
 
 
-def materialize_boss(tn: TensorNetwork, blocks: List[OutputBlock], cfg) -> BossResult:
+def materialize_astnc(tn: TensorNetwork, blocks: List[OutputBlock], cfg) -> ASTNCResult:
     import time
 
     part = build_partition_tree(tn)
     depth_info = _partition_depth_info(part)
     max_depth = _max_partition_depth(part)
     cache = SeparatorStateCache(enabled=bool(getattr(cfg, "cache_enabled", True)))
-    stats = BossRuntimeStats()
+    stats = ASTNCRuntimeStats()
     base_seed = int(getattr(cfg, "seed", 0))
     dense = np.zeros(tn.output_shape, dtype=np.float64)
     t_contract = 0.0
@@ -478,7 +478,7 @@ def materialize_boss(tn: TensorNetwork, blocks: List[OutputBlock], cfg) -> BossR
         dense[target] = block_tensor
         t_emit += time.perf_counter() - t1
 
-    return BossResult(dense=dense, contract_time_sec=t_contract, emit_time_sec=t_emit, meta={
+    return ASTNCResult(dense=dense, contract_time_sec=t_contract, emit_time_sec=t_emit, meta={
         "num_blocks": len(blocks),
         "refined_blocks": refined_blocks,
         "mean_rank": float(np.mean(used_ranks)) if used_ranks else 0.0,

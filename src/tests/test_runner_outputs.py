@@ -9,7 +9,7 @@ def test_validate_config_keeps_global_seed_consistent():
         "seed": 9,
         "task": {"name": "materialize"},
         "data": {"name": "ring", "generator": "ring", "seed": 9},
-        "method": {"name": "boss", "seed": 9},
+        "method": {"name": "astnc", "seed": 9},
         "block": {"name": "default"},
         "experiment": {"name": "unit", "group": "tests"},
         "hydra": {"job": {"num": 0}},
@@ -26,7 +26,7 @@ def test_build_run_row_contains_required_columns():
         "seed": 3,
         "experiment": {"name": "ring_demo"},
         "data": {"name": "ring", "generator": "ring"},
-        "method": {"name": "boss", "rank_policy": "fixed", "target_rank": 5, "oversample": 2, "n_power_iter": 1},
+        "method": {"name": "astnc", "rank_policy": "fixed", "target_rank": 5, "oversample": 2, "n_power_iter": 1},
     })
     row = build_run_row(
         cfg,

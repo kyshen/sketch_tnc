@@ -3,9 +3,9 @@ requires = ["setuptools>=68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "boss-tnc-style"
+name = "astnc-tnc-style"
 version = "0.1.0"
-description = "BOSS-TNC paper system organized in experiment-style layout"
+description = "ASTNC-TNC paper system organized in experiment-style layout"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [

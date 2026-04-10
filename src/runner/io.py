@@ -68,13 +68,13 @@ def build_run_row(
     error_message: str | None = None,
 ) -> dict[str, Any]:
     method_name = str(_select(cfg, "method.name", ""))
-    is_boss = method_name == "boss"
-    rank_policy = _select(cfg, "method.rank_policy") if is_boss else None
-    target_rank = _select(cfg, "method.target_rank") if is_boss else None
-    tau = _select(cfg, "method.tau") if is_boss else None
-    if tau is None and is_boss:
+    is_astnc = method_name == "astnc"
+    rank_policy = _select(cfg, "method.rank_policy") if is_astnc else None
+    target_rank = _select(cfg, "method.target_rank") if is_astnc else None
+    tau = _select(cfg, "method.tau") if is_astnc else None
+    if tau is None and is_astnc:
         tau = _select(cfg, "method.leaf_tol")
-    if tau is None and is_boss:
+    if tau is None and is_astnc:
         tau = _select(cfg, "method.merge_tol")
     row = {
         "family": _select(cfg, "data.generator", _select(cfg, "data.name", "")),
@@ -89,14 +89,14 @@ def build_run_row(
         "speedup": metrics.get("speedup_vs_exact"),
         "seed": _select(cfg, "seed"),
         "tau": tau,
-        "fixed_rank": target_rank if is_boss and str(rank_policy) == "fixed" else None,
-        "oversampling": _select(cfg, "method.oversample", _select(cfg, "method.oversampling")) if is_boss else None,
-        "power_iter": _select(cfg, "method.n_power_iter", _select(cfg, "method.power_iter")) if is_boss else None,
+        "fixed_rank": target_rank if is_astnc and str(rank_policy) == "fixed" else None,
+        "oversampling": _select(cfg, "method.oversample", _select(cfg, "method.oversampling")) if is_astnc else None,
+        "power_iter": _select(cfg, "method.n_power_iter", _select(cfg, "method.power_iter")) if is_astnc else None,
         "rank_policy": rank_policy,
-        "leaf_tol": _select(cfg, "method.leaf_tol") if is_boss else None,
-        "merge_tol": _select(cfg, "method.merge_tol") if is_boss else None,
+        "leaf_tol": _select(cfg, "method.leaf_tol") if is_astnc else None,
+        "merge_tol": _select(cfg, "method.merge_tol") if is_astnc else None,
         "target_rank": target_rank,
-        "max_rank": _select(cfg, "method.max_rank") if is_boss else None,
+        "max_rank": _select(cfg, "method.max_rank") if is_astnc else None,
         "error_message": error_message,
     }
     return {column: row.get(column) for column in RESULT_COLUMNS}

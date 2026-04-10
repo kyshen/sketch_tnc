@@ -1,5 +1,5 @@
-_target_: src.methods.BOSSMaterialization
-name: boss
+_target_: src.methods.ASTNCMaterialization
+name: astnc
 optimize: greedy
 rank_policy: adaptive
 leaf_tol: 0.001

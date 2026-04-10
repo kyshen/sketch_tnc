@@ -2,13 +2,13 @@ from typing import Any, Dict, List
 
 import numpy as np
 
-from src.core.algorithms import materialize_boss
+from src.core.algorithms import materialize_astnc
 from src.core.blocking import OutputBlock
 from src.methods.base import BaseMethod
 from src.types import LogCallback, TNProblem
 
 
-class BOSSMaterialization(BaseMethod):
+class ASTNCMaterialization(BaseMethod):
     def __init__(self, **method_cfg: Any) -> None:
         super().__init__()
         self.cfg = method_cfg
@@ -20,13 +20,13 @@ class BOSSMaterialization(BaseMethod):
     def fit(self, problem: TNProblem, blocks: List[OutputBlock], logcallback: LogCallback) -> None:
         self.problem = problem
         self.blocks = blocks
-        result = materialize_boss(problem.network, blocks, self)
+        result = materialize_astnc(problem.network, blocks, self)
         self._dense = result.dense
         self._meta = result.meta
         self._contract_time_sec = float(result.contract_time_sec)
         self._emit_time_sec = float(result.emit_time_sec)
         logcallback.addlog({
-            "method": "boss",
+            "method": "astnc",
             "num_blocks": len(blocks),
             "contract_time_sec": self._contract_time_sec,
             "emit_time_sec": self._emit_time_sec,

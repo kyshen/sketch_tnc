@@ -1,5 +1,5 @@
 from .base import BaseMethod
 from .exact import ExactMaterialization
-from .boss import BOSSMaterialization
+from .astnc import ASTNCMaterialization
 
-__all__ = ["BaseMethod", "ExactMaterialization", "BOSSMaterialization"]
+__all__ = ["BaseMethod", "ExactMaterialization", "ASTNCMaterialization"]
