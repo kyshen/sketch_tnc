@@ -32,26 +32,44 @@ summary & \na & \na & \na & avg. $=2.68\times 10^{-3}$ & gmean $=42.53\times$ \\
 
 \subsection{机制分析}
 
-本节探讨所提出方法的收益来自哪里。阶段分解给出的答案非常明确：在四个主结果网络上，默认 \method 配置的平均 $t_{\mathrm{contract}}/t_{\mathrm{total}}$ 为 $0.9992$；其平均收缩加速比与总加速比分别为 $52.07\times$ 与 $52.03\times$，几乎完全重合。这说明 \method 的端到端收益几乎完全来自收缩阶段，而不是写入阶段的偶然波动。以 Grid 3 $\times$ 3 为例，收缩加速为 $84.36\times$，总加速为 $84.33\times$，二者在数值上几乎没有区别。
-
-在机制层面，以 Grid 3 $\times$ 3 这一最具区分度的网络为例\Cref{tab:grid-evidence}。去掉隐式草图合并机制后，误差几乎不变，但总时间恶化到默认设置的 $6.97\times$；这说明隐式草图合并降低内部合并成本且不牺牲精度。去掉输出分块机制后，总时间变为 $2.40\times$，同时误差从 $4.08\times 10^{-3}$ 上升到 $1.06\times 10^{-2}$。综合这些结果，本文在机制上的结论是：隐式草图合并是核心、稳定的效率来源，输出分块也具有实质作用。
+本节探讨所提出方法的收益来自哪里。\Cref{tab:stage-breakdown-core} 给出的时间阶段分解证据非常明确：在四个主结果网络上，默认 \method 配置的平均 $t_{\mathrm{contract}}/t_{\mathrm{total}}$ 为 $0.9992$；其平均收缩加速比与总加速比分别为 $52.07\times$ 与 $52.03\times$，几乎完全重合。这说明 \method 的端到端收益几乎完全来自收缩阶段，而不是写入阶段的偶然波动。以 Grid 3 $\times$ 3 为例，收缩加速为 $84.36\times$，总加速为 $84.33\times$，二者在数值上几乎没有区别。
 
 \begin{table}[t]
 \centering
 \small
-\caption{Grid 3 $\times$ 3 上的机制与近似强度对照：草图、输出分块及近似强度变化的代表性证据。}
-\label{tab:grid-evidence}
+\caption{时间阶段分解证据：\method\ 的端到端收益几乎全部来自收缩阶段，而非输出写回。}
+\label{tab:stage-breakdown-core}
+\begin{adjustbox}{max width=\columnwidth}
+\begin{tabular}{lcccc}
+\toprule
+Case & $t_{\mathrm{contract}}/t_{\mathrm{total}}$ & $t_{\mathrm{emit}}/t_{\mathrm{total}}$ & contraction speedup & total speedup \\
+\midrule
+Ring-8 & 0.9993 & 0.000694 & 56.37$\times$ & 56.33$\times$ \\
+Tree-8 & 0.9985 & 0.001454 & 50.65$\times$ & 50.58$\times$ \\
+Grid 3 $\times$ 3 & 0.9997 & 0.000333 & 84.36$\times$ & 84.33$\times$ \\
+Random-8 & 0.9993 & 0.000722 & 16.92$\times$ & 16.91$\times$ \\
+\midrule
+Average & 0.9992 & 0.000801 & 52.07$\times$ & 52.03$\times$ \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+在机制层面，我们用 Grid 3 $\times$ 3 这一最具区分度的网络来隔离关键因素，如 \Cref{tab:grid-mechanism} 所示。去掉隐式草图合并机制后，误差几乎不变，但总时间恶化到默认设置的 $6.97\times$；这说明隐式草图合并降低内部合并成本且不牺牲精度。去掉输出分块机制后，总时间变为 $2.40\times$，同时误差从 $4.08\times 10^{-3}$ 上升到 $1.06\times 10^{-2}$。因此，就 harder case 而言，隐式草图合并是核心、稳定的效率来源，而输出分块也具有实质作用。
+
+\begin{table}[t]
+\centering
+\small
+\caption{Grid 3 $\times$ 3 上的核心机制证据。}
+\label{tab:grid-mechanism}
 \begin{adjustbox}{max width=\columnwidth}
 \begin{tabular}{lccc}
 \toprule
-Setting & rel. error & total time (s) & time ratio \\
+Setting & rel. error & total time (s) & time ratio vs. default \\
 \midrule
-ASTNC (default) & 4.08$\times 10^{-3}$ & 0.4426 & 1.00 \\
+\method\ (default) & 4.08$\times 10^{-3}$ & 0.4426 & 1.00 \\
 no-blockwise & 1.06$\times 10^{-2}$ & 1.0635 & 2.40 \\
 no-implicit & 4.08$\times 10^{-3}$ & 3.0838 & 6.97 \\
-\midrule
-\textsf{ASTNC-L1} & $<10^{-12}$ & 0.1907 & 0.43 \\
-\textsf{ASTNC-L3} & 1.81$\times 10^{-2}$ & 0.3331 & 0.75 \\
 \bottomrule
 \end{tabular}
 \end{adjustbox}
@@ -59,4 +77,24 @@ no-implicit & 4.08$\times 10^{-3}$ & 3.0838 & 6.97 \\
 
 \subsection{近似强度调控}
 
-本节探究近似强度 $\tau$ 是否能稳定控制误差。从 \textsf{L1} 到 \textsf{L2} 再到 \textsf{L3}，误差呈现出清楚的递增关系。以 Ring-8 为例，相对误差从 $<10^{-12}$ 上升到 $1.83\times 10^{-3}$，再到 $1.55\times 10^{-2}$；在 Grid 3 $\times$ 3 上，则从 $<10^{-12}$ 上升到 $4.08\times 10^{-3}$，再到 $1.81\times 10^{-2}$；Random-8 上 \textsf{L1}/\textsf{L2} 近乎无误差，而 \textsf{L3} 上升到 $1.26\times 10^{-2}$。因此，近似强度首先是 \method\ 控制误差的旋钮。
+本节探究近似强度 $\tau$ 是否能稳定控制误差。\Cref{tab:strength-sensitivity-core} 表明，从 \textsf{L1} 到 \textsf{L2} 再到 \textsf{L3}，误差整体上呈现清楚的递增关系。以 Ring-8 为例，相对误差从 $<10^{-12}$ 上升到 $1.83\times 10^{-3}$，再到 $1.55\times 10^{-2}$；在 Grid 3 $\times$ 3 上，则从 $<10^{-12}$ 上升到 $4.08\times 10^{-3}$，再到 $1.81\times 10^{-2}$；Random-8 上 \textsf{L1}/\textsf{L2} 近乎无误差，而 \textsf{L3} 上升到 $1.26\times 10^{-2}$。因此，近似强度首先是 \method\ 控制误差的旋钮：更强的近似通常带来更大的误差，而较弱的近似则更接近精确结果。
+
+\begin{table}[t]
+\centering
+\small
+\caption{近似强度调控证据：从 \textsf{L1} 到 \textsf{L2} 再到 \textsf{L3}，误差整体上升。}
+\label{tab:strength-sensitivity-core}
+\begin{adjustbox}{max width=\columnwidth}
+\begin{tabular}{lccc}
+\toprule
+Case & L1 rel. error & L2 rel. error & L3 rel. error \\
+\midrule
+Ring-8 & $<10^{-12}$ & 1.83$\times 10^{-3}$ & 1.55$\times 10^{-2}$ \\
+Grid 3 $\times$ 3 & $<10^{-12}$ & 4.08$\times 10^{-3}$ & 1.81$\times 10^{-2}$ \\
+Random-8 & $<10^{-12}$ & $<10^{-12}$ & 1.26$\times 10^{-2}$ \\
+\midrule
+Average rel. error & $<10^{-12}$ & 1.97$\times 10^{-3}$ & 1.54$\times 10^{-2}$ \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
