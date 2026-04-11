@@ -28,12 +28,12 @@ T_{\mathrm{total}} = T_{\mathrm{contract}} + T_{\mathrm{emit}},
 实验围绕两组问题展开。
 第一，相对精确完整收缩，\method\ 在尺度扩展过程中能否保持清楚的误差--时间折中，并在更大规模上继续保持可行；
 第二，固定秩、缓存、选择性近似和 implicit merge sketch 等内部设计到底分别起什么作用。
-结果表明：在 exact 可得的比较区间内，\method\ 在 ring、PEPS-like 与随机连通图上都保持了较低误差，并相对 Exact-Path 给出数量级加速；在进一步的 frontier 扫描中，\method\ 完成了全部测试点，而 Exact-Path 在更大的 ring、PEPS-like 与随机图实例上先后跨过 timeout 边界；而消融分析进一步表明，固定秩方案更接近“更快但更不准”的一端，cache reuse 在更大规模时带来清楚收益，而 implicit merge sketch 的优势与规模相关：在很小实例上收益并不总是稳定，但在更大的合并接口上开始体现出正向作用。
-因此，本文支持的结论是：保持输出边界的自适应内部接口近似，配合基于 sketch 的合并压缩，能够在完整物化任务下给出更稳健、并且在更困难实例上更有价值的精度--时间折中。
+结果表明：在 exact 可得区间内，\method\ 形成了清楚的误差--时间折中，并给出相对 exact 的数量级加速；阶段分解显示端到端收益主要来自 contraction side。机制层面上，fixed-rank 更接近“更快但更不准”的端点，implicit merge sketch 是 harder cases 上更稳健的效率来源，blockwise output organization 在更复杂 workload 上更重要但具有 workload dependence，而 cache reuse 在当前实现下不支持稳定正收益的统一结论。
+在跨尺度评估中，easy regime 行为稳定，但 medium 区间已经出现明显 boundary-like behavior，boundary 区间则出现大面积 timeout/failure。因而，\textsf{ASTNC-L2} 仅被用作主实验中的 pragmatic default preset，而不是经验上全局最优工作点；更大规模下的推荐也应采用 case-dependent 口径。
 
 本文的贡献可以概括为三点：
 \begin{itemize}
     \item 提出一个面向开放腿张量网络完整物化的近似收缩设定，将优化重点从“近似收缩值”转向“在保持输出边界语义不变的前提下降低内部收缩代价”。
     \item 提出一种基于划分树递归的分隔状态框架，并在 \method\ 中引入基于算子访问的 implicit merge sketch，以降低内部合并阶段的大接口压缩开销。
-    \item 通过 exact-reference comparison、尺度 frontier 与内部消融说明：\method\ 能够在完整物化任务中形成更稳健的精度--时间折中；其中，自适应秩选择与 cache reuse 提供了稳定收益，而 sketch 压缩的优势随着合并接口规模增大而开始显现。
+    \item 通过 exact-reference comparison、阶段时间分解、尺度 regime 评估与内部消融说明：\method\ 在完整物化任务中形成可解释的误差--时间折中，主要收益来自 contraction side；implicit sketch 在 harder cases 上更稳健，blockwise 具有 workload dependence，cache reuse 在当前实现下不支持 universal positive claim。
 \end{itemize}

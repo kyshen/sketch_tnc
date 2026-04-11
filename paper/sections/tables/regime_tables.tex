@@ -1,0 +1,43 @@
+﻿\begin{table*}[t]
+\centering
+\small
+\caption{跨拓扑跨尺度 case inventory 与区间归类。}
+\label{tab:regime-inventory}
+\begin{tabular}{lccccc}
+\toprule
+case\_id & topology & scale & exact available & completed fraction & regime \\
+\midrule
+main\_chain\_8 & chain & easy & yes & 1.000 & stable \\
+main\_ring\_8 & ring & easy & yes & 1.000 & stable \\
+main\_tree\_8 & tree & easy & yes & 1.000 & stable \\
+main\_grid2d\_3x3 & grid2d & easy & yes & 1.000 & stable \\
+main\_random\_8 & random\_connected & easy & yes & 1.000 & stable \\
+medium\_chain\_10 & chain & medium & no & 0.125 & boundary-like \\
+medium\_ring\_10 & ring & medium & no & 0.000 & boundary-like \\
+medium\_tree\_10 & tree & medium & no & 0.000 & boundary-like \\
+medium\_grid2d\_3x4 & grid2d & medium & no & 0.000 & boundary-like \\
+medium\_random\_10 & random\_connected & medium & no & 0.250 & boundary-like \\
+boundary\_ring\_12 & ring & boundary & no & 0.000 & boundary \\
+boundary\_grid2d\_4x4 & grid2d & boundary & no & 0.000 & boundary \\
+boundary\_random\_12 & random\_connected & boundary & no & 0.000 & boundary \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\begin{table}[t]
+\centering
+\small
+\caption{regime 级别汇总：easy 稳定，medium 已出现边界行为，boundary 完全超时。}
+\label{tab:regime-summary}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lcccc}
+\toprule
+Scale & \#cases & mean completed fraction & mean timeout rate & exact anchor availability \\
+\midrule
+easy & 5 & 1.000 & 0.000 & 5/5 \\
+medium & 5 & 0.075 & 0.925 & 0/5 \\
+boundary & 3 & 0.000 & 1.000 & 0/3 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}

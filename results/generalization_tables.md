@@ -9,11 +9,11 @@
 | main_tree_8 | tree | num_nodes=8, phys_dim=3, bond_dim=4, open_legs_per_node=1 | easy | True | 1.000 |
 | main_grid2d_3x3 | grid2d | grid_shape=[3,3], num_nodes=9, phys_dim=3, bond_dim=4, open_legs_per_node=1 | easy | True | 1.000 |
 | main_random_8 | random_connected | num_nodes=8, phys_dim=3, bond_dim=4, edge_prob=0.35, open_legs_per_node=1 | easy | True | 1.000 |
-| medium_chain_10 | chain | num_nodes=10, phys_dim=3, bond_dim=4, open_legs_per_node=1 | medium | False | 0.250 |
+| medium_chain_10 | chain | num_nodes=10, phys_dim=3, bond_dim=4, open_legs_per_node=1 | medium | False | 0.125 |
 | medium_ring_10 | ring | num_nodes=10, phys_dim=3, bond_dim=4, open_legs_per_node=1 | medium | False | 0.000 |
 | medium_tree_10 | tree | num_nodes=10, phys_dim=3, bond_dim=4, open_legs_per_node=1 | medium | False | 0.000 |
 | medium_grid2d_3x4 | grid2d | grid_shape=[3,4], num_nodes=12, phys_dim=3, bond_dim=4, open_legs_per_node=1 | medium | False | 0.000 |
-| medium_random_10 | random_connected | num_nodes=10, phys_dim=3, bond_dim=4, edge_prob=0.35, open_legs_per_node=1 | medium | False | 0.000 |
+| medium_random_10 | random_connected | num_nodes=10, phys_dim=3, bond_dim=4, edge_prob=0.35, open_legs_per_node=1 | medium | False | 0.250 |
 | boundary_ring_12 | ring | num_nodes=12, phys_dim=3, bond_dim=4, open_legs_per_node=1 | boundary | False | 0.000 |
 | boundary_grid2d_4x4 | grid2d | grid_shape=[4,4], num_nodes=16, phys_dim=3, bond_dim=4, open_legs_per_node=1 | boundary | False | 0.000 |
 | boundary_random_12 | random_connected | num_nodes=12, phys_dim=3, bond_dim=4, edge_prob=0.35, open_legs_per_node=1 | boundary | False | 0.000 |
@@ -77,7 +77,7 @@
 | exact | ok=0/2, timeout=2, failed=0 | NA | NA | NA | NA |
 | fixed-rank baseline | NA | NA | NA | NA | NA |
 | ASTNC-L1 | ok=1/2, timeout=1, failed=0 | 0.000000 | 0.0415 | 22852.072 | 0.9956 |
-| ASTNC-L2 | ok=1/2, timeout=1, failed=0 | 0.007700 | 0.1022 | 17594.485 | 0.9952 |
+| ASTNC-L2 | ok=0/2, timeout=2, failed=0 | NA | NA | NA | NA |
 | ASTNC-L3 | ok=0/2, timeout=2, failed=0 | NA | NA | NA | NA |
 
 ### medium_ring_10
@@ -116,9 +116,9 @@
 |---|---|---:|---:|---:|---:|
 | exact | ok=0/2, timeout=2, failed=0 | NA | NA | NA | NA |
 | fixed-rank baseline | NA | NA | NA | NA | NA |
-| ASTNC-L1 | ok=0/2, timeout=2, failed=0 | NA | NA | NA | NA |
+| ASTNC-L1 | ok=1/2, timeout=1, failed=0 | 0.003337 | 4.7850 | 59.894 | 0.9999 |
 | ASTNC-L2 | ok=0/2, timeout=2, failed=0 | NA | NA | NA | NA |
-| ASTNC-L3 | ok=0/2, timeout=2, failed=0 | NA | NA | NA | NA |
+| ASTNC-L3 | ok=1/2, timeout=1, failed=0 | 0.046085 | 4.4098 | 66.133 | 0.9999 |
 
 ### boundary_ring_12
 
@@ -159,11 +159,11 @@
 | main_tree_8 | ASTNC-L1 | ASTNC-L2 | ASTNC-L1 | no | no |
 | main_grid2d_3x3 | ASTNC-L1 | ASTNC-L1 | ASTNC-L1 | yes | yes |
 | main_random_8 | ASTNC-L1 | ASTNC-L2 | ASTNC-L1 | no | no |
-| medium_chain_10 | ASTNC-L1 | ASTNC-L1 | ASTNC-L1 | yes | NA |
+| medium_chain_10 | ASTNC-L1 | ASTNC-L1 | ASTNC-L1 | NA | NA |
 | medium_ring_10 | NA | NA | NA | NA | NA |
 | medium_tree_10 | NA | NA | NA | NA | NA |
 | medium_grid2d_3x4 | NA | NA | NA | NA | NA |
-| medium_random_10 | NA | NA | NA | NA | NA |
+| medium_random_10 | ASTNC-L1 | ASTNC-L3 | ASTNC-L1 | NA | NA |
 | boundary_ring_12 | NA | NA | NA | NA | NA |
 | boundary_grid2d_4x4 | NA | NA | NA | NA | NA |
 | boundary_random_12 | NA | NA | NA | NA | NA |
@@ -177,11 +177,11 @@
 | main_tree_8 | stable | completed=1.000; timeout_rate=0.000; exact_available=True | all methods mostly run; anchors available |
 | main_grid2d_3x3 | stable | completed=1.000; timeout_rate=0.000; exact_available=True | all methods mostly run; anchors available |
 | main_random_8 | stable | completed=1.000; timeout_rate=0.000; exact_available=True | all methods mostly run; anchors available |
-| medium_chain_10 | boundary | completed=0.250; timeout_rate=0.750; exact_available=False | timeouts/low completion or missing exact anchor |
+| medium_chain_10 | boundary | completed=0.125; timeout_rate=0.875; exact_available=False | timeouts/low completion or missing exact anchor |
 | medium_ring_10 | boundary | completed=0.000; timeout_rate=1.000; exact_available=False | timeouts/low completion or missing exact anchor |
 | medium_tree_10 | boundary | completed=0.000; timeout_rate=1.000; exact_available=False | timeouts/low completion or missing exact anchor |
 | medium_grid2d_3x4 | boundary | completed=0.000; timeout_rate=1.000; exact_available=False | timeouts/low completion or missing exact anchor |
-| medium_random_10 | boundary | completed=0.000; timeout_rate=1.000; exact_available=False | timeouts/low completion or missing exact anchor |
+| medium_random_10 | boundary | completed=0.250; timeout_rate=0.750; exact_available=False | timeouts/low completion or missing exact anchor |
 | boundary_ring_12 | boundary | completed=0.000; timeout_rate=1.000; exact_available=False | timeouts/low completion or missing exact anchor |
 | boundary_grid2d_4x4 | boundary | completed=0.000; timeout_rate=1.000; exact_available=False | timeouts/low completion or missing exact anchor |
 | boundary_random_12 | boundary | completed=0.000; timeout_rate=1.000; exact_available=False | timeouts/low completion or missing exact anchor |
@@ -197,9 +197,9 @@
 | easy | ASTNC-L3 | 0.019463 | 0.1294 | 1.000 | 0.000 | 0.9993 |
 | medium | exact | NA | NA | 0.000 | 1.000 | NA |
 | medium | fixed-rank baseline | NA | NA | NA | NA | NA |
-| medium | ASTNC-L1 | 0.000000 | 0.0415 | 0.100 | 0.900 | 0.9956 |
-| medium | ASTNC-L2 | 0.007700 | 0.1022 | 0.100 | 0.900 | 0.9952 |
-| medium | ASTNC-L3 | NA | NA | 0.000 | 1.000 | NA |
+| medium | ASTNC-L1 | 0.001668 | 2.4133 | 0.200 | 0.800 | 0.9978 |
+| medium | ASTNC-L2 | NA | NA | 0.000 | 1.000 | NA |
+| medium | ASTNC-L3 | 0.046085 | 4.4098 | 0.100 | 0.900 | 0.9999 |
 | boundary | exact | NA | NA | 0.000 | 1.000 | NA |
 | boundary | fixed-rank baseline | NA | NA | NA | NA | NA |
 | boundary | ASTNC-L1 | NA | NA | 0.000 | 1.000 | NA |

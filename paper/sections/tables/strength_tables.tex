@@ -1,0 +1,25 @@
+﻿\begin{table}[t]
+\centering
+\small
+\caption{近似强度敏感性：\textsf{ASTNC-L1/L2/L3} 在核心 case 上的误差与时间对比。}
+\label{tab:strength-sensitivity}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{llccc}
+\toprule
+Case & Method & rel\_error & total\_time (s) & time ratio vs L2 \\
+\midrule
+main\_ring\_8 & ASTNC-L1 & $<1\mathrm{e}{-12}$ & 0.0478 & 0.8952 \\
+main\_ring\_8 & ASTNC-L2 & 1.83e-3 & 0.0534 & 1.0000 \\
+main\_ring\_8 & ASTNC-L3 & 1.55e-2 & 0.0495 & 0.9264 \\
+\midrule
+main\_grid2d\_3x3 & ASTNC-L1 & $<1\mathrm{e}{-12}$ & 0.1907 & 0.4308 \\
+main\_grid2d\_3x3 & ASTNC-L2 & 4.08e-3 & 0.4426 & 1.0000 \\
+main\_grid2d\_3x3 & ASTNC-L3 & 1.81e-2 & 0.3331 & 0.7527 \\
+\midrule
+main\_random\_8 & ASTNC-L1 & $<1\mathrm{e}{-12}$ & 0.0547 & 1.0445 \\
+main\_random\_8 & ASTNC-L2 & $<1\mathrm{e}{-12}$ & 0.0524 & 1.0000 \\
+main\_random\_8 & ASTNC-L3 & 1.26e-2 & 0.0545 & 1.0412 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}

@@ -1,0 +1,45 @@
+﻿\begin{table*}[t]
+\centering
+\small
+\caption{主结果逐 case 对比：exact、fixed-rank baseline 与 \textsf{ASTNC-L2} 的端到端误差--时间折中（核心 case）。}
+\label{tab:main-results-casewise}
+\begin{tabular}{llcccc}
+\toprule
+Case & Method & rel\_error & total\_time (s) & speedup vs exact & $t_{\mathrm{contract}}/t_{\mathrm{total}}$ \\
+\midrule
+main\_ring\_8 & exact & 0 & 3.0072 & 1.00$\times$ & 1.0000 \\
+main\_ring\_8 & fixed-rank baseline & 8.06e-1 & 0.0244 & 123.39$\times$ & 0.9986 \\
+main\_ring\_8 & ASTNC-L2 & 1.83e-3 & 0.0534 & 56.31$\times$ & 0.9993 \\
+\midrule
+main\_tree\_8 & exact & 0 & 1.1068 & 1.00$\times$ & 1.0000 \\
+main\_tree\_8 & fixed-rank baseline & 6.52e-1 & 0.0192 & 57.69$\times$ & 0.9980 \\
+main\_tree\_8 & ASTNC-L2 & 4.81e-3 & 0.0224 & 49.45$\times$ & 0.9985 \\
+\midrule
+main\_grid2d\_3x3 & exact & 0 & 37.1995 & 1.00$\times$ & 1.0000 \\
+main\_grid2d\_3x3 & fixed-rank baseline & 9.79e-1 & 0.0657 & 566.07$\times$ & 0.9976 \\
+main\_grid2d\_3x3 & ASTNC-L2 & 4.08e-3 & 0.4426 & 84.05$\times$ & 0.9997 \\
+\midrule
+main\_random\_8 & exact & 0 & 0.7326 & 1.00$\times$ & 0.9999 \\
+main\_random\_8 & fixed-rank baseline & 9.28e-1 & 0.0337 & 21.72$\times$ & 0.9984 \\
+main\_random\_8 & ASTNC-L2 & $<1\mathrm{e}{-12}$ & 0.0524 & 13.98$\times$ & 0.9993 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\begin{table}[t]
+\centering
+\small
+\caption{主结果跨 case 汇总（核心 case：ring/tree/grid2d/random）。}
+\label{tab:main-results-summary}
+\resizebox{\columnwidth}{!}{%
+\begin{tabular}{lccccc}
+\toprule
+Method & avg rel\_error & avg total (s) & avg speedup & geo speedup & avg $t_c/t_t$ \\
+\midrule
+exact & 0 & 10.5115 & 1.00$\times$ & 1.00$\times$ & 1.0000 \\
+fixed-rank baseline & 8.41e-1 & 0.0357 & 192.22$\times$ & 96.73$\times$ & 0.9981 \\
+ASTNC-L2 & 2.68e-3 & 0.1427 & 50.95$\times$ & 42.53$\times$ & 0.9992 \\
+\bottomrule
+\end{tabular}
+}
+\end{table}

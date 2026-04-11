@@ -1,8 +1,8 @@
-PWD c:/Users/mrkys/workspace/sketch_tnc/paper
+PWD C:/Users/mrkys/workspace/sketch_tnc/paper
 INPUT c:/texlive/2026/texmf.cnf
 INPUT c:/texlive/2026/texmf-dist/web2c/texmf.cnf
 INPUT c:/texlive/2026/texmf-var/web2c/xetex/xelatex.fmt
-INPUT c:/Users/mrkys/workspace/sketch_tnc/paper/paper.tex
+INPUT paper.tex
 OUTPUT paper.log
 INPUT c:/texlive/2026/texmf-dist/tex/latex/base/article.cls
 INPUT c:/texlive/2026/texmf-dist/tex/latex/base/article.cls
@@ -352,6 +352,7 @@ INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm5.tfm
 INPUT ./sections/introduction.tex
 INPUT ./sections/introduction.tex
 INPUT sections/introduction.tex
+OUTPUT paper.xdv
 INPUT ./sections/related work.tex
 INPUT ./sections/related work.tex
 INPUT sections/related work.tex
@@ -361,6 +362,27 @@ INPUT sections/method.tex
 INPUT ./sections/experiments.tex
 INPUT ./sections/experiments.tex
 INPUT sections/experiments.tex
+INPUT ./sections/tables/main_results_tables.tex
+INPUT ./sections/tables/main_results_tables.tex
+INPUT sections/tables/main_results_tables.tex
+INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmmi9.tfm
+INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmsy9.tfm
+INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex9.tfm
+INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam10.tfm
+INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/symbols/msbm10.tfm
+INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmr9.tfm
+INPUT ./sections/tables/gain_breakdown_tables.tex
+INPUT ./sections/tables/gain_breakdown_tables.tex
+INPUT sections/tables/gain_breakdown_tables.tex
+INPUT ./sections/tables/ablation_tables.tex
+INPUT ./sections/tables/ablation_tables.tex
+INPUT sections/tables/ablation_tables.tex
+INPUT ./sections/tables/strength_tables.tex
+INPUT ./sections/tables/strength_tables.tex
+INPUT sections/tables/strength_tables.tex
+INPUT ./sections/tables/regime_tables.tex
+INPUT ./sections/tables/regime_tables.tex
+INPUT sections/tables/regime_tables.tex
 INPUT ./sections/conclusion.tex
 INPUT ./sections/conclusion.tex
 INPUT sections/conclusion.tex

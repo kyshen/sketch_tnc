@@ -1,0 +1,26 @@
+﻿\begin{table*}[t]
+\centering
+\small
+\caption{核心机制消融：ASTNC-L2 与去除机制版本在核心 case 上的误差、时间与内部统计。}
+\label{tab:ablation-core}
+\begin{tabular}{llccccc}
+\toprule
+Case & Method & rel\_error & total\_time (s) & time ratio vs L2 & peak rank & implicit sketch count \\
+\midrule
+main\_ring\_8 & ASTNC-L2 & 1.83e-3 & 0.0534 & 1.0000 & 16 & 0.00 \\
+main\_ring\_8 & ASTNC-L2-no-blockwise & $<1\mathrm{e}{-12}$ & 0.0291 & 0.5441 & 16 & 0.00 \\
+main\_ring\_8 & ASTNC-L2-no-implicit & 1.83e-3 & 0.0479 & 0.8969 & 16 & 0.00 \\
+main\_ring\_8 & ASTNC-L2-no-cache & 1.83e-3 & 0.0588 & 1.1002 & 16 & 0.00 \\
+\midrule
+main\_grid2d\_3x3 & ASTNC-L2 & 4.08e-3 & 0.4426 & 1.0000 & 64 & 13.67 \\
+main\_grid2d\_3x3 & ASTNC-L2-no-blockwise & 1.06e-2 & 1.0635 & 2.4029 & 222 & 4.00 \\
+main\_grid2d\_3x3 & ASTNC-L2-no-implicit & 4.08e-3 & 3.0838 & 6.9675 & 64 & 0.00 \\
+main\_grid2d\_3x3 & ASTNC-L2-no-cache & 4.08e-3 & 0.3818 & 0.8627 & 64 & 13.67 \\
+\midrule
+main\_random\_8 & ASTNC-L2 & $<1\mathrm{e}{-12}$ & 0.0524 & 1.0000 & 63 & 2.00 \\
+main\_random\_8 & ASTNC-L2-no-blockwise & 3.50e-3 & 0.0969 & 1.8488 & 143 & 1.33 \\
+main\_random\_8 & ASTNC-L2-no-implicit & $<1\mathrm{e}{-12}$ & 0.0618 & 1.1803 & 63 & 0.00 \\
+main\_random\_8 & ASTNC-L2-no-cache & $<1\mathrm{e}{-12}$ & 0.1456 & 2.7791 & 63 & 6.00 \\
+\bottomrule
+\end{tabular}
+\end{table*}

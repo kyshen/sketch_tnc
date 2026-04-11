@@ -1,17 +1,22 @@
 # Fdb version 4
-["biber paper"] 1775878468.90548 "paper.bcf" "paper.bbl" "paper" 1775878482.30758 0
-  "paper.bcf" 1775878482 110913 a1d3fabbd0bbbc4e338136ed8711e9fc "pdflatex"
+["biber paper"] 1775878468.90548 "paper.bcf" "paper.bbl" "paper" 1775896744.07905 0
+  "paper.bcf" 1775896742 110913 a1d3fabbd0bbbc4e338136ed8711e9fc "xelatex"
   "ref.bib" 1775788392 5258 27f4ed2ceec3a4be6e561213fa2fa1ef ""
   (generated)
   "paper.bbl"
   "paper.blg"
   (rewritten before read)
-["pdflatex"] 1775878479.37755 "c:/Users/mrkys/workspace/sketch_tnc/paper/paper.tex" "paper.pdf" "paper" 1775878482.30832 0
-  "c:/Users/mrkys/workspace/sketch_tnc/paper/paper.tex" 1775878472 454 1df7cd96050f3615d4b8c8345bb5941d ""
+["xdvipdfmx"] 1775896743.2 "paper.xdv" "paper.pdf" "paper" 1775896744.08465 0
+  "paper.xdv" 1775896742 280140 bfd5f7aa0fe9c0a46397fc68227506fb "xelatex"
+  (generated)
+  "paper.pdf"
+  (rewritten before read)
+["xelatex"] 1775896740.6006 "paper.tex" "paper.xdv" "paper" 1775896744.07926 0
   "c:/texlive/2026/texmf-dist/fonts/map/fontname/texfonts.map" 1773378659 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/adobe/zapfding/pzdr.tfm" 1773383139 1528 7e12f4c0fcf5a072cebdcfbfc610f54c ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex7.tfm" 1773376646 1004 54797486969f23fa377b128694d548df ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex8.tfm" 1773376646 988 bdf658c3bfc2d96d3c8b02cfc1c94c20 ""
+  "c:/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/cmextra/cmex9.tfm" 1773376646 996 a18840b13b499c08ac2de96a99eda4bc ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam10.tfm" 1773376646 916 f87d7c45f9c908e672703b83b72241a3 ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam5.tfm" 1773376646 924 9904cf1d39e9767e7a3622f2a125a565 ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/amsfonts/symbols/msam7.tfm" 1773376646 928 2dc8d444221b7a635bb58038579b861a ""
@@ -22,13 +27,16 @@
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmmi12.tfm" 1773377528 1524 4414a8315f39513458b80dfc63bff03a ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmmi6.tfm" 1773377528 1512 f21f83efb36853c0b70002322c1ab3ad ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmmi8.tfm" 1773377528 1520 eccf95517727cb11801f4f1aee3a21b4 ""
+  "c:/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmmi9.tfm" 1773377528 1524 d89e2d087a9828407a196f428428ef4a ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmr10.tfm" 1773377528 1296 45809c5a464d5f32c8f98ba97c1bb47f ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmr12.tfm" 1773377528 1288 655e228510b4c2a1abe905c368440826 ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmr6.tfm" 1773377528 1300 b62933e007d01cfd073f79b963c01526 ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmr8.tfm" 1773377528 1292 21c1c5bfeaebccffdb478fd231a0997d ""
+  "c:/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmr9.tfm" 1773377528 1292 6b21b9c2c7bebb38aa2273f7ca0fb3af ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmsy10.tfm" 1773377528 1124 6c73e740cf17375f03eec0ee63599741 ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmsy6.tfm" 1773377528 1116 933a60c408fc0a863a92debe84b2d294 ""
   "c:/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmsy8.tfm" 1773377528 1120 8b7d695260f3cff42e636090a8002094 ""
+  "c:/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmsy9.tfm" 1773377528 1116 25a7bf822c58caf309a702ef79f4afbb ""
   "c:/texlive/2026/texmf-dist/tex/generic/bigintcalc/bigintcalc.sty" 1773377176 40635 c40361e206be584d448876bba8a64a3b ""
   "c:/texlive/2026/texmf-dist/tex/generic/bitset/bitset.sty" 1773377189 33961 6b5c75130e435b2bfdb9f480a09a39f9 ""
   "c:/texlive/2026/texmf-dist/tex/generic/gettitlestring/gettitlestring.sty" 1773378824 8371 9d55b8bd010bc717624922fb3477d92e ""
@@ -183,23 +191,28 @@
   "c:/texlive/2026/texmf-var/web2c/xetex/xelatex.fmt" 1773383346 5948929 40d205a58968ec56db57bed3a14af856 ""
   "c:/texlive/2026/texmf.cnf" 1773383176 713 e69b156964470283e0530f5060668171 ""
   "head.tex" 1775822128 1182 c3eb332561a795f3667b70772ec9c4ae ""
-  "paper.aux" 1775878482 7023 1b0a6bc8c63be856b970567ccb5b2a26 "pdflatex"
+  "paper.aux" 1775896742 11238 2b14b42e32a929e3bacaf4ced65846d3 "xelatex"
   "paper.bbl" 1775878476 29610 cc375a89717424f3b9adeb2062baf99d "biber paper"
-  "paper.out" 1775878482 1204 a5761b63c1126cc7ff02f37f600783b1 "pdflatex"
-  "paper.run.xml" 1775878482 2340 5ea5b1ba05773674de0f05818819c433 "pdflatex"
+  "paper.out" 1775896742 2156 4dd7411f73b093596cbdd9046c592206 "xelatex"
+  "paper.run.xml" 1775896742 2340 5ea5b1ba05773674de0f05818819c433 "xelatex"
   "paper.tex" 1775878472 454 1df7cd96050f3615d4b8c8345bb5941d ""
   "sections/abstract.tex" 1775814863 1929 4cfe326593ea01fee673fac9aaf9b111 ""
   "sections/appendix.tex" 1775821941 17 9e02e29134c2844cc9656568ec67c092 ""
   "sections/conclusion.tex" 1775822172 18 5e234374e94ad1dbf351a824b2c5dd35 ""
-  "sections/experiments.tex" 1775822253 17 054b3943267712ebee96ec15afb8f38c ""
-  "sections/introduction.tex" 1775814863 5274 17f5aec5d2c7eabedfff9782b1e2b1d8 ""
+  "sections/experiments.tex" 1775896537 6002 5baa7e057311b630826c4db59e5311ac ""
+  "sections/introduction.tex" 1775896584 5325 875f74ff1b93e702251440fc5a5f2ef0 ""
   "sections/method.tex" 1775814863 12850 b25b1dc4f06059e5355cebeddd1d821c ""
   "sections/related work.tex" 1775814863 3530 f5d66c6de73a1bec6f6b349f11181819 ""
+  "sections/tables/ablation_tables.tex" 1775896444 1379 4081f09d4e1b98f160bec7e57a0c96b6 ""
+  "sections/tables/gain_breakdown_tables.tex" 1775896669 1983 28aa50df7ed3aec2729609782d5535ea ""
+  "sections/tables/main_results_tables.tex" 1775896653 1901 fe752104e873fa002ba48b8ea23687d7 ""
+  "sections/tables/regime_tables.tex" 1775896729 1620 c1fe68fccfe1208f16cf297076ac053d ""
+  "sections/tables/strength_tables.tex" 1775896717 941 1343ec8682a6d05de2922e4d3c70328d ""
   (generated)
   "paper.aux"
   "paper.bcf"
   "paper.log"
   "paper.out"
-  "paper.pdf"
   "paper.run.xml"
+  "paper.xdv"
   (rewritten before read)
