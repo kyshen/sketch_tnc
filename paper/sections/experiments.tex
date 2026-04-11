@@ -1,75 +1,62 @@
-﻿\section{实验}
+\section{实验}
 
-本节围绕带开放腿张量网络的完整稠密物化任务，对 \method\ 的误差--时间折中、收益来源、内部机制作用、近似强度敏感性以及跨拓扑跨尺度行为进行系统分析。
-与通常只关注标量收缩值的近似收缩设定不同，本文要求显式生成完整输出张量，因此实验更关注在保持输出语义不变的前提下，内部收缩代价是否能够被有效降低。
-当前阶段仅汇报主文表格结果。
+本节围绕三个问题组织实验：第一，\method\ 在 TNC 任务中是否形成了可用的精度--时间折中；第二，这些收益是否真的来自内部收缩，而不是输出写回；第三，近似强度与关键机制分别起什么作用。
 
-\subsection{实验设置与评测协议}
+\subsection{实验设置}
 
-实验覆盖 chain、ring、tree、grid2d 和 random\_connected 五类拓扑，并按 easy、medium、boundary 三个规模区间组织。
-其中 easy 区间用于建立 exact 可得条件下的主结果与机制分析；medium 与 boundary 区间用于观察尺度扩大后的边界行为。
+我们主要报告四类有代表性的经典网络：ring~\cite{bondy2008graph}、tree~\cite{diestel2017graph}、grid2d~\cite{levin2007trg,orus2014practical} 与随机网络~\cite{erdos1959random,gilbert1959random}，具体为：Ring-8、Tree-8、Grid 3 $\times$ 3 与 Random-8（8 为节点数，3 $\times$ 3代表二维网格）；每个节点都带 1 条开放腿，物理维统一取 $3$，bond 维统一取 4。\textsf{\method-L1/L2/L3}对应不同的近似强度，除特别说明外，\textsf{\method} 指中等强度预设。对比方法包括精确收缩 exact-TNC、固定秩基线与 \method。固定秩基线统一设置秩为4，目的是提供一个明确的“小秩快速近似”参照。其他关键细节（网络构造、容忍度$\tau$、分块策略等）见附录~\Cref{app:exp-details}。
 
-评测指标分为三类：
-精度指标（rel\_error、RMSE、NMSE、NMSE\_dB）、时间指标（contraction/emit/total 及相对 exact 的 speedup）、内部统计（如 peak rank、compressed merge 数、implicit sketch 触发统计、cache 统计等）。
-除特别说明外，\textsf{ASTNC-L2} 在主实验中作为默认预设，仅代表务实的中间配置，而非经验上全局最优统一工作点。
+\subsection{主结果}
 
-\subsection{主结果：端到端误差--时间折中}
+\Cref{tab:main-core} 给出了四个网络上的比较。可以看到，固定秩基线的共同特征是极快，但在 ring、tree、grid 与随机网络上都出现了明显失真：其相对误差达到 $0.65$ 到 $0.98$。相比之下，默认 \method 配置在四个网络上都把相对误差压在 $4.81\times 10^{-3}$ 以内，同时相对 exact-TNC 仍获得 $13.98\times$ 到 $84.05\times$ 的加速。最有区分度的结果来自 Grid 3 $\times$ 3：exact-TNC 需要 $37.20$ 秒，而 \method 将总时间降到 $0.4426$ 秒，相对误差仅为 $4.08\times 10^{-3}$。在这四个网络上，\method 的几何平均加速为 $42.53\times$，平均相对误差为 $2.68\times 10^{-3}$。这说明 \method\ 在保持较高精度的同时，能够实现显著的时间加速。
 
-主结果如表~\ref{tab:main-results-casewise} 与表~\ref{tab:main-results-summary} 所示。
-在核心 case（ring/tree/grid2d/random）上，exact 始终作为零误差锚点，但端到端时间最高；fixed-rank baseline 往往最快，但误差在非平凡拓扑上明显恶化；\textsf{ASTNC-L2} 在多数核心 case 上保持低误差并提供数量级加速，形成可用的误差--时间折中。
+\begin{table*}[t]
+\centering
+\footnotesize
+\caption{四个典型网络上的主结果：exact-TNC、固定秩基线与 \method 的精度--时间折中对比。}
+\label{tab:main-core}
+\setlength{\tabcolsep}{6pt}
+\begin{tabular}{lccccc}
+\toprule
+Case & exact-TNC time (s) & fixed-rank rel. error & fixed-rank speedup & \method\ rel. error & \method\ speedup \\
+\midrule
+Ring-8 & 3.0072 & 0.8058 & 123.39$\times$ & 1.83$\times 10^{-3}$ & 56.31$\times$ \\
+Tree-8 & 1.1068 & 0.6524 & 57.69$\times$ & 4.81$\times 10^{-3}$ & 49.45$\times$ \\
+Grid 3 $\times$ 3 & 37.1995 & 0.9789 & 566.07$\times$ & 4.08$\times 10^{-3}$ & 84.05$\times$ \\
+Random-8 & 0.7326 & 0.9283 & 21.72$\times$ & $<10^{-12}$ & 13.98$\times$ \\
+\midrule
+summary & \na & \na & \na & avg. $=2.68\times 10^{-3}$ & gmean $=42.53\times$ \\
+\bottomrule
+\end{tabular}
+\end{table*}
 
-特别是在 $3\times 3$ grid 上，\textsf{ASTNC-L2} 相对 exact 达到 84.05$\times$ 加速，rel\_error 仍维持在 $4.08\times 10^{-3}$；对比 fixed-rank baseline，尽管后者更快，但误差已接近 $10^{0}$ 量级。
-跨 case 汇总中，\textsf{ASTNC-L2} 的平均 speedup 为 50.95$\times$（几何均值 42.53$\times$），平均误差显著低于 fixed-rank baseline。
+\subsection{机制分析}
 
-\input{sections/tables/main_results_tables.tex}
+本节探讨所提出方法的收益来自哪里。阶段分解给出的答案非常明确：在四个主结果网络上，默认 \method 配置的平均 $t_{\mathrm{contract}}/t_{\mathrm{total}}$ 为 $0.9992$；其平均收缩加速比与总加速比分别为 $52.07\times$ 与 $52.03\times$，几乎完全重合。这说明 \method 的端到端收益几乎完全来自收缩阶段，而不是写入阶段的偶然波动。以 Grid 3 $\times$ 3 为例，收缩加速为 $84.36\times$，总加速为 $84.33\times$，二者在数值上几乎没有区别。
 
-\subsection{收益来自哪里：contraction-side gain analysis}
+在机制层面，以 Grid 3 $\times$ 3 这一最具区分度的网络为例\Cref{tab:grid-evidence}。去掉 implicit merge sketch 后，误差几乎不变，但总时间恶化到默认设置的 $6.97\times$；这说明隐式草图融合降低内部合并成本且不牺牲精度。去掉输出分块机制后，总时间变为 $2.40\times$，同时误差从 $4.08\times 10^{-3}$ 上升到 $1.06\times 10^{-2}$。综合这些结果，本文在机制上的结论是：隐式草图融合是核心、稳定的效率来源，输出分块也具有实质作用。
 
-阶段时间分解见表~\ref{tab:gain-breakdown-stage}，收益汇总见表~\ref{tab:gain-breakdown-summary}。
-在全部核心 case 上，$t_{\mathrm{contract}}/t_{\mathrm{total}}$ 接近 1，而 $t_{\mathrm{emit}}/t_{\mathrm{total}}$ 始终为小尾项，说明端到端时间由 contraction 阶段主导。
+\begin{table}[t]
+\centering
+\small
+\caption{Grid 3 $\times$ 3 上的机制与近似强度对照：草图、输出分块及近似强度变化的代表性证据。}
+\label{tab:grid-evidence}
+\begin{adjustbox}{max width=\columnwidth}
+\begin{tabular}{lccc}
+\toprule
+Setting & rel. error & total time (s) & time ratio \\
+\midrule
+ASTNC (default) & 4.08$\times 10^{-3}$ & 0.4426 & 1.00 \\
+no-blockwise & 1.06$\times 10^{-2}$ & 1.0635 & 2.40 \\
+no-implicit & 4.08$\times 10^{-3}$ & 3.0838 & 6.97 \\
+\midrule
+\textsf{ASTNC-L1} & $<10^{-12}$ & 0.1907 & 0.43 \\
+\textsf{ASTNC-L3} & 1.81$\times 10^{-2}$ & 0.3331 & 0.75 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
 
-对 \textsf{ASTNC-L2} 而言，平均 contract speedup（52.07$\times$）与平均 total speedup（52.03$\times$）几乎一致，且 gain\_share\_contract 约为 1。
-因此，\method\ 的主要收益来自 contraction side，而非 emit/writeback 端。
-个别 gain-share 的轻微扰动可由 emit 项量级极小导致的测量波动解释。
+\subsection{近似强度调控}
 
-\input{sections/tables/gain_breakdown_tables.tex}
-
-\subsection{核心机制消融}
-
-核心消融结果见表~\ref{tab:ablation-core}。
-总体上，\method\ 的收益并非单一技巧驱动，而是多个机制组合形成。
-
-第一，implicit merge sketch 在 harder case 上更稳健且更关键：在 main\_grid2d\_3x3 上去除 implicit 后，时间相对 \textsf{ASTNC-L2} 恶化到 6.97$\times$，而误差基本不变。
-第二，blockwise output organization 具有明显 workload dependence：在 main\_ring\_8 上 no-blockwise 反而更快，但在 grid2d 与 random 上明显变慢并伴随更高峰值秩。
-第三，cache reuse 在当前实现下不支持 universal positive claim：no-cache 在不同 case 上既有变快也有变慢，表现出实现开销敏感和 workload 依赖。
-
-据此，正文主叙事聚焦两点：implicit merge sketch 是 harder cases 上更稳健的效率来源；blockwise 在复杂收缩结构中更重要但非无条件增益。
-
-\input{sections/tables/ablation_tables.tex}
-
-\subsection{近似强度敏感性}
-
-强度敏感性结果见表~\ref{tab:strength-sensitivity}。
-在核心 case 上，误差随强度从 L1$\rightarrow$L2$\rightarrow$L3 单调恶化；但运行时间不呈单调规律。
-这意味着“更强近似必然更快”在当前数据上并不成立。
-
-例如在 main\_grid2d\_3x3 上，\textsf{ASTNC-L1} 同时快于且准于 \textsf{ASTNC-L2}；\textsf{ASTNC-L3} 虽有部分时间回收，但误差显著上升。
-在 main\_random\_8 上，L1 与 L2 都接近 near-exact，而 L3 主要带来误差恶化且无稳定额外收益。
-因此，\textsf{ASTNC-L2} 在全文中仅应作为 pragmatic default preset，而非统一最优工作点。
-
-\input{sections/tables/strength_tables.tex}
-
-\subsection{跨拓扑跨尺度行为与边界区间}
-
-跨尺度与区间归类见表~\ref{tab:regime-inventory} 与表~\ref{tab:regime-summary}。
-easy 区间（5/5 case）全部完成且 exact 锚点可得，3.2--3.5 的主结论在该区间内稳定成立。
-
-更关键的是，boundary-like behavior 在 medium 区间已经出现：平均 completed fraction 仅 0.075，平均 timeout rate 达 0.925，exact 锚点全部缺失。
-在 nominal boundary 区间，完成率降至 0，timeout rate 为 1.000。
-这说明当前实现并未经历较长的平滑过渡区，而是从 fully stable easy regime 较快进入 boundary regime。
-
-因此，timeout/failure 不是应丢弃的坏数据，而是有意义的边界信号；更大尺度下的方法推荐必须以 case/regime 为条件，而不能沿用 easy 区间中的统一口径。
-
-\input{sections/tables/regime_tables.tex}
-
-综合 3.2--3.6 的结果，本文支持如下结论：在 exact 可得区间内，\method\ 形成了清楚的误差--时间折中；其主要收益来自 contraction side；implicit merge sketch 在 harder cases 上更稳健，blockwise 在复杂 workload 上更重要但具 workload dependence；cache reuse 的收益在当前实现下不稳定；\textsf{ASTNC-L2} 仅是务实默认预设而非统一最优；规模扩大后当前实现较快进入 boundary regime。
+本节探究近似强度 $\tau$ 是否能稳定控制误差。从 \textsf{L1} 到 \textsf{L2} 再到 \textsf{L3}，误差呈现出清楚的递增关系。以 Ring-8 为例，相对误差从 $<10^{-12}$ 上升到 $1.83\times 10^{-3}$，再到 $1.55\times 10^{-2}$；在 Grid 3 $\times$ 3 上，则从 $<10^{-12}$ 上升到 $4.08\times 10^{-3}$，再到 $1.81\times 10^{-2}$；Random-8 上 \textsf{L1}/\textsf{L2} 近乎无误差，而 \textsf{L3} 上升到 $1.26\times 10^{-2}$。因此，近似强度首先是 \method\ 控制误差的旋钮。

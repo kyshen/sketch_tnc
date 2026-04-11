@@ -19,6 +19,37 @@
 
 \refsection{0}
   \datalist[entry]{nyt/global//global/global/global}
+    \entry{bondy2008graph}{book}{}{}
+      \name{author}{2}{}{%
+        {{hash=fc429ec79bbd3ab14fa74a2460ebf4db}{%
+           family={Bondy},
+           familyi={B\bibinitperiod},
+           given={J.\bibnamedelimi A.},
+           giveni={J\bibinitperiod\bibinitdelim A\bibinitperiod}}}%
+        {{hash=44cfb76b2ac4dfb64db88edfbc0a8abd}{%
+           family={Murty},
+           familyi={M\bibinitperiod},
+           given={U.\bibnamedelimi S.\bibnamedelimi R.},
+           giveni={U\bibinitperiod\bibinitdelim S\bibinitperiod\bibinitdelim R\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Springer}%
+      }
+      \strng{namehash}{2f77cd3798975852fc32eaed9d33c411}
+      \strng{fullhash}{2f77cd3798975852fc32eaed9d33c411}
+      \strng{fullhashraw}{2f77cd3798975852fc32eaed9d33c411}
+      \strng{bibnamehash}{2f77cd3798975852fc32eaed9d33c411}
+      \strng{authorbibnamehash}{2f77cd3798975852fc32eaed9d33c411}
+      \strng{authornamehash}{2f77cd3798975852fc32eaed9d33c411}
+      \strng{authorfullhash}{2f77cd3798975852fc32eaed9d33c411}
+      \strng{authorfullhashraw}{2f77cd3798975852fc32eaed9d33c411}
+      \field{sortinit}{B}
+      \field{sortinithash}{d7095fff47cda75ca2589920aae98399}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{title}{Graph Theory}
+      \field{year}{2008}
+    \endentry
     \entry{charikar2004finding}{article}{}{}
       \name{author}{3}{}{%
         {{hash=e1b3700a6d5248ffa34baab20bc00fa5}{%
@@ -148,6 +179,33 @@
       \field{pages}{1297\bibrangedash 1303}
       \range{pages}{7}
     \endentry
+    \entry{diestel2017graph}{book}{}{}
+      \name{author}{1}{}{%
+        {{hash=d7750765c1eb004bdcdce07ed2272ba7}{%
+           family={Diestel},
+           familyi={D\bibinitperiod},
+           given={Reinhard},
+           giveni={R\bibinitperiod}}}%
+      }
+      \list{publisher}{1}{%
+        {Springer}%
+      }
+      \strng{namehash}{d7750765c1eb004bdcdce07ed2272ba7}
+      \strng{fullhash}{d7750765c1eb004bdcdce07ed2272ba7}
+      \strng{fullhashraw}{d7750765c1eb004bdcdce07ed2272ba7}
+      \strng{bibnamehash}{d7750765c1eb004bdcdce07ed2272ba7}
+      \strng{authorbibnamehash}{d7750765c1eb004bdcdce07ed2272ba7}
+      \strng{authornamehash}{d7750765c1eb004bdcdce07ed2272ba7}
+      \strng{authorfullhash}{d7750765c1eb004bdcdce07ed2272ba7}
+      \strng{authorfullhashraw}{d7750765c1eb004bdcdce07ed2272ba7}
+      \field{sortinit}{D}
+      \field{sortinithash}{6f385f66841fb5e82009dc833c761848}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{edition}{5}
+      \field{title}{Graph Theory}
+      \field{year}{2017}
+    \endentry
     \entry{dumitrescu2018benchmarking}{article}{}{}
       \name{author}{6}{}{%
         {{hash=dc349a0159dd70b7c1e00d26f8c068eb}{%
@@ -202,6 +260,69 @@
       \range{pages}{-1}
       \verb{doi}
       \verb 10.1371/journal.pone.0207827
+      \endverb
+    \endentry
+    \entry{erdos1959random}{article}{}{}
+      \name{author}{2}{}{%
+        {{hash=6bdf16ead0815d7b7b3548f89f0f1355}{%
+           family={Erdős},
+           familyi={E\bibinitperiod},
+           given={Paul},
+           giveni={P\bibinitperiod}}}%
+        {{hash=d1fe4e3577456830636963a58be0aabd}{%
+           family={Rényi},
+           familyi={R\bibinitperiod},
+           given={Alfréd},
+           giveni={A\bibinitperiod}}}%
+      }
+      \strng{namehash}{97a933f3856d267f220b0c9a1cf91245}
+      \strng{fullhash}{97a933f3856d267f220b0c9a1cf91245}
+      \strng{fullhashraw}{97a933f3856d267f220b0c9a1cf91245}
+      \strng{bibnamehash}{97a933f3856d267f220b0c9a1cf91245}
+      \strng{authorbibnamehash}{97a933f3856d267f220b0c9a1cf91245}
+      \strng{authornamehash}{97a933f3856d267f220b0c9a1cf91245}
+      \strng{authorfullhash}{97a933f3856d267f220b0c9a1cf91245}
+      \strng{authorfullhashraw}{97a933f3856d267f220b0c9a1cf91245}
+      \field{sortinit}{E}
+      \field{sortinithash}{8da8a182d344d5b9047633dfc0cc9131}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{Publicationes Mathematicae (Debrecen)}
+      \field{title}{On Random Graphs I}
+      \field{volume}{6}
+      \field{year}{1959}
+      \field{pages}{290\bibrangedash 297}
+      \range{pages}{8}
+    \endentry
+    \entry{gilbert1959random}{article}{}{}
+      \name{author}{1}{}{%
+        {{hash=02209db72e005b4058b5cf6ab3143b3f}{%
+           family={Gilbert},
+           familyi={G\bibinitperiod},
+           given={Edgar\bibnamedelima N.},
+           giveni={E\bibinitperiod\bibinitdelim N\bibinitperiod}}}%
+      }
+      \strng{namehash}{02209db72e005b4058b5cf6ab3143b3f}
+      \strng{fullhash}{02209db72e005b4058b5cf6ab3143b3f}
+      \strng{fullhashraw}{02209db72e005b4058b5cf6ab3143b3f}
+      \strng{bibnamehash}{02209db72e005b4058b5cf6ab3143b3f}
+      \strng{authorbibnamehash}{02209db72e005b4058b5cf6ab3143b3f}
+      \strng{authornamehash}{02209db72e005b4058b5cf6ab3143b3f}
+      \strng{authorfullhash}{02209db72e005b4058b5cf6ab3143b3f}
+      \strng{authorfullhashraw}{02209db72e005b4058b5cf6ab3143b3f}
+      \field{sortinit}{G}
+      \field{sortinithash}{32d67eca0634bf53703493fb1090a2e8}
+      \field{labelnamesource}{author}
+      \field{labeltitlesource}{title}
+      \field{journaltitle}{The Annals of Mathematical Statistics}
+      \field{number}{4}
+      \field{title}{Random Graphs}
+      \field{volume}{30}
+      \field{year}{1959}
+      \field{pages}{1141\bibrangedash 1144}
+      \range{pages}{4}
+      \verb{doi}
+      \verb 10.1214/aoms/1177706098
       \endverb
     \endentry
     \entry{gray2024hyperoptimized}{article}{}{}

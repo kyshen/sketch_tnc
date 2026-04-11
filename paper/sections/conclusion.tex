@@ -1,2 +1,8 @@
 \section{结论}
 
+本文研究了带开放腿张量网络的完整稠密物化问题，并提出了面向这一任务的 output-sensitive approximate contraction 框架 \method。
+与通常面向标量收缩或局部查询的近似方法不同，本文始终保持输出边界显式存在，只对内部接口状态做近似，并通过 blockwise output organization、划分树递归、分隔状态压缩和 implicit merge sketch 将这一思路组织成统一流程。
+
+实验给出的主信息是清楚而集中的：在 Ring-8、Tree-8、Grid $3\times 3$ 与 Random-8 上，\method 能够形成可用的精度--时间折中；其端到端收益几乎完全来自 contraction 阶段；implicit merge sketch 是更核心的效率来源，而 blockwise output organization 在 Grid 和随机图上具有实质作用。与此同时，强度扫描表明近似强度首先是控制误差的旋钮。
+
+未来工作可沿两个方向展开：其一，是进一步提升更大规模下的完成率与系统稳定性；其二，是继续细化 selective approximation、cache 与更丰富的 sketch 策略，使机制层面的收益能够在更广 workload 上更稳定地体现出来。

@@ -1,15 +1,25 @@
 \usepackage[margin=0.75in]{geometry}
 \usepackage{fontspec}
 \usepackage{xeCJK}
-\setmainfont{TeX Gyre Termes}
-\setsansfont{Latin Modern Sans}
-\setmonofont{Latin Modern Mono}
-\setCJKmainfont[
-  BoldFont=FandolHei-Regular,
-  ItalicFont=FandolKai-Regular
-]{FandolSong-Regular}
-\setCJKsansfont{FandolHei-Regular}
-\setCJKmonofont{FandolFang-Regular}
+\setmainfont{DejaVu Serif}
+\setsansfont{DejaVu Sans}
+\setmonofont{DejaVu Sans Mono}
+\IfFontExistsTF{Noto Serif CJK SC}{
+  \setCJKmainfont{Noto Serif CJK SC}
+}{
+  \IfFontExistsTF{SimSun}{
+    \setCJKmainfont{SimSun}
+  }{}
+}
+\IfFontExistsTF{Noto Sans CJK SC}{
+  \setCJKsansfont{Noto Sans CJK SC}
+  \setCJKmonofont{Noto Sans CJK SC}
+}{
+  \IfFontExistsTF{Microsoft YaHei}{
+    \setCJKsansfont{Microsoft YaHei}
+    \setCJKmonofont{Microsoft YaHei}
+  }{}
+}
 \usepackage{microtype}
 \usepackage{amsmath,amssymb,amsfonts,mathtools}
 \usepackage{booktabs}
@@ -19,6 +29,14 @@
 \usepackage{enumitem}
 \usepackage{hyperref}
 \usepackage[nameinlink,noabbrev]{cleveref}
+\usepackage{array}
+\usepackage{tabularx}
+\usepackage{threeparttable}
+\usepackage{adjustbox}
+\usepackage{makecell}
+\usepackage{subcaption}
+\usepackage{float}
+\usepackage{siunitx}
 \usepackage[backend=biber,style=numeric,sorting=nyt,maxbibnames=99]{biblatex}
 
 \addbibresource{ref.bib}
@@ -35,7 +53,17 @@
 \setlength{\floatsep}{8pt plus 2pt minus 2pt}
 \setlength{\abovecaptionskip}{4pt}
 \setlength{\belowcaptionskip}{0pt}
+\setlength{\emergencystretch}{2em}
 
-\newcommand{\method}{\textsf{ASTNC}}
+\newcommand{\method}{\textsf{AS-TNC}}
 \newcommand{\RR}{\mathbb{R}}
 \newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
+\newcommand{\best}[1]{\textbf{#1}}
+\newcommand{\na}{\textemdash}
+
+\sisetup{
+  detect-all,
+  group-minimum-digits=4,
+  table-number-alignment=center,
+  table-text-alignment=center,
+}

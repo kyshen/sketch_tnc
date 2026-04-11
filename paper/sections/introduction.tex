@@ -25,15 +25,11 @@ T_{\mathrm{total}} = T_{\mathrm{contract}} + T_{\mathrm{emit}},
 因此，本文的核心并不是某一个孤立的局部技巧，而是把输出分块、划分树递归、分隔状态近似与 sketch 驱动的合并压缩组织成一条统一的完整收缩流程。
 在这条流程里，输出语义保持不变，近似只服务于降低内部收缩成本。
 
-实验围绕两组问题展开。
-第一，相对精确完整收缩，\method\ 在尺度扩展过程中能否保持清楚的误差--时间折中，并在更大规模上继续保持可行；
-第二，固定秩、缓存、选择性近似和 implicit merge sketch 等内部设计到底分别起什么作用。
-结果表明：在 exact 可得区间内，\method\ 形成了清楚的误差--时间折中，并给出相对 exact 的数量级加速；阶段分解显示端到端收益主要来自 contraction side。机制层面上，fixed-rank 更接近“更快但更不准”的端点，implicit merge sketch 是 harder cases 上更稳健的效率来源，blockwise output organization 在更复杂 workload 上更重要但具有 workload dependence，而 cache reuse 在当前实现下不支持稳定正收益的统一结论。
-在跨尺度评估中，easy regime 行为稳定，但 medium 区间已经出现明显 boundary-like behavior，boundary 区间则出现大面积 timeout/failure。因而，\textsf{ASTNC-L2} 仅被用作主实验中的 pragmatic default preset，而不是经验上全局最优工作点；更大规模下的推荐也应采用 case-dependent 口径。
+实验部分围绕三个问题展开：第一，\method\ 在完整物化任务中能否形成清楚而可用的精度--时间折中；第二，这些收益是否确实来自 contraction 阶段，以及哪些机制在较难网络上最关键；第三，近似强度是否能稳定控制误差。结果表明，在 Ring-8、Tree-8、Grid $3\times 3$ 与 Random-8 上，代表性 \method 配置将相对误差控制在 $4.81\times 10^{-3}$ 以内，同时相对 exact-TNC 获得 $13.98\times$ 到 $84.05\times$ 的加速；而 fixed-rank baseline 采用固定小秩 $r=4$，虽然更快，却带来 $0.65$ 到 $0.98$ 的大误差。进一步分析表明，端到端收益几乎完全来自 contraction 阶段；implicit merge sketch 是更稳定的效率来源，blockwise output organization 在 Grid 和随机图上也具有实质作用。强度扫描则显示，近似强度更适合被理解为控制误差的旋钮，而不是保证时间单调变化的等级轴。
 
 本文的贡献可以概括为三点：
 \begin{itemize}
-    \item 提出一个面向开放腿张量网络完整物化的近似收缩设定，将优化重点从“近似收缩值”转向“在保持输出边界语义不变的前提下降低内部收缩代价”。
-    \item 提出一种基于划分树递归的分隔状态框架，并在 \method\ 中引入基于算子访问的 implicit merge sketch，以降低内部合并阶段的大接口压缩开销。
-    \item 通过 exact-reference comparison、阶段时间分解、尺度 regime 评估与内部消融说明：\method\ 在完整物化任务中形成可解释的误差--时间折中，主要收益来自 contraction side；implicit sketch 在 harder cases 上更稳健，blockwise 具有 workload dependence，cache reuse 在当前实现下不支持 universal positive claim。
+    \item 提出一个面向带开放腿张量网络完整物化的 output-sensitive approximate contraction 设定，将优化重点从“近似收缩值”转向“在保持输出边界语义不变的前提下降低内部 contraction 代价”。
+    \item 提出基于划分树递归的分隔状态框架，并在 \method\ 中引入基于算子访问的 implicit merge sketch，以降低内部合并阶段的大接口压缩开销；同时通过 blockwise output organization 组织完整输出的物化过程。
+    \item 通过主 benchmark、机制分析与强度扫描说明：\method\ 能够在 Ring-8、Tree-8、Grid $3\times 3$ 与 Random-8 上形成清楚的精度--时间折中，并揭示其收益来源与关键机制。
 \end{itemize}

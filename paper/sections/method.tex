@@ -133,9 +133,7 @@ M \in \mathbb{R}^{m \times n},
 \[
 M = U \Sigma V^\top,
 \qquad
-\Sigma = \mathrm{diag}(\sigma_1,\sigma_2,\ldots),
-\qquad
-\sigma_1 \ge \sigma_2 \ge \cdots \ge 0.
+\Sigma = \mathrm{diag}(\sigma_1,\sigma_2,\ldots).
 \]
 若取其秩-$r$ 截断近似
 \[
@@ -226,12 +224,12 @@ M_{proj} = \widetilde U \Sigma V^\top.
 \]
 
 到这一步为止，原来的大接口已经被转化成一个小矩阵上的谱截断问题。
-直接采用固定秩可以直接保留前 $r$ 个奇异方向；而本文主线采用基于尾能量的自适应截断：给定合并容忍度 $\tau_{\mathrm{merge}}$，选择满足
+直接采用固定秩可以直接保留前 $r$ 个奇异方向；而本文主线采用基于尾能量的自适应截断：给定合并容忍度 $\tau$，选择满足
 \[
 \left(
 \frac{\sum_{i>r} \sigma_i^2}{\sum_i \sigma_i^2}
 \right)^{1/2}
-\le \tau_{\mathrm{merge}}
+\le \tau
 \]
 的最小秩 $r$。
 设据此得到的截断结果为

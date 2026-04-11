@@ -2405,6 +2405,12 @@
     <bcf:citekey order="15" intorder="1">halko2011finding</bcf:citekey>
     <bcf:citekey order="15" intorder="2">heddes2026approximating</bcf:citekey>
     <bcf:citekey order="16" intorder="1">halko2011finding</bcf:citekey>
+    <bcf:citekey order="17" intorder="1">bondy2008graph</bcf:citekey>
+    <bcf:citekey order="18" intorder="1">diestel2017graph</bcf:citekey>
+    <bcf:citekey order="19" intorder="1">levin2007trg</bcf:citekey>
+    <bcf:citekey order="19" intorder="2">orus2014practical</bcf:citekey>
+    <bcf:citekey order="20" intorder="1">erdos1959random</bcf:citekey>
+    <bcf:citekey order="20" intorder="2">gilbert1959random</bcf:citekey>
   </bcf:section>
   <!-- SORTING TEMPLATES -->
   <bcf:sortingtemplate name="nyt">
