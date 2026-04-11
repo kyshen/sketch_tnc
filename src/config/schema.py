@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import Any, List, Optional
+from typing import Any, List
 
 from omegaconf import DictConfig, OmegaConf
 
@@ -24,8 +24,6 @@ class DataConfig:
     seed: int = 0
     edge_prob: float = 0.45
     grid_shape: List[int] = field(default_factory=lambda: [2, 3])
-    edge_file: Optional[str] = None
-    custom_edges: List[List[int]] = field(default_factory=lambda: [[0, 1], [1, 2], [2, 3], [3, 0]])
 
 
 @dataclass

@@ -1,10 +1,7 @@
-from pathlib import Path
 from typing import Dict, List, Tuple
-import json
 
 import networkx as nx
 import numpy as np
-import yaml
 
 from src.core.network import TensorNetwork, TensorNode
 
@@ -20,8 +17,6 @@ def make_graph(cfg, rng: np.random.Generator) -> nx.Graph:
     gen = cfg["generator"] if isinstance(cfg, dict) else cfg.generator
     if gen == "random_connected":
         return _ensure_connected_random(int(cfg["num_nodes"] if isinstance(cfg, dict) else cfg.num_nodes), float(cfg.get("edge_prob", 0.45) if isinstance(cfg, dict) else cfg.edge_prob), rng)
-    if gen == "chain":
-        return nx.path_graph(int(cfg["num_nodes"] if isinstance(cfg, dict) else cfg.num_nodes))
     if gen == "ring":
         return nx.cycle_graph(int(cfg["num_nodes"] if isinstance(cfg, dict) else cfg.num_nodes))
     if gen == "tree":
@@ -33,27 +28,6 @@ def make_graph(cfg, rng: np.random.Generator) -> nx.Graph:
         base = nx.grid_2d_graph(rows, cols)
         mapping = {node: i for i, node in enumerate(base.nodes())}
         return nx.relabel_nodes(base, mapping)
-    if gen == "custom_edges":
-        num_nodes = int(cfg["num_nodes"] if isinstance(cfg, dict) else cfg.num_nodes)
-        g = nx.Graph()
-        g.add_nodes_from(range(num_nodes))
-        edges = [tuple(map(int, e)) for e in (cfg.get("custom_edges", []) if isinstance(cfg, dict) else cfg.custom_edges)]
-        edge_file = cfg.get("edge_file", None) if isinstance(cfg, dict) else cfg.edge_file
-        if edge_file not in (None, "null"):
-            path = Path(str(edge_file))
-            if path.suffix in {".yaml", ".yml"}:
-                data = yaml.safe_load(path.read_text(encoding="utf-8"))
-                edges = [tuple(map(int, e)) for e in data["edges"]]
-            elif path.suffix == ".json":
-                data = json.loads(path.read_text(encoding="utf-8"))
-                edges = [tuple(map(int, e)) for e in data["edges"]]
-            else:
-                rows = [line.strip() for line in path.read_text(encoding="utf-8").splitlines() if line.strip()]
-                edges = [tuple(map(int, row.replace(',', ' ').split())) for row in rows]
-        g.add_edges_from(edges)
-        if not nx.is_connected(g):
-            raise ValueError("custom_edges graph must be connected")
-        return g
     raise ValueError(f"Unknown generator: {gen}")
 
 
