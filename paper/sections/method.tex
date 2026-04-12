@@ -1,24 +1,24 @@
 \section{方法}
 
 \subsection{整体思路}
-设 $\mathcal N$ 为一个带开放标签集合 $\mathcal O$ 的张量网络，内部收缩标签集合记为 $\mathcal I$。
+设 $\mathcal N$ 为一个带开放腿的张量网络，其开放标签集合记为 $\mathcal O$，内部收缩标签集合记为 $\mathcal I$。
 将所有内部标签收缩后，可得到完整输出张量
 \[
 X = \mathrm{Mat}(\mathcal N) \in \mathbb{R}^{d_1 \times \cdots \times d_{|\mathcal O|}}.
 \]
-其中Mat表示将网络物化为完整输出张量。相应地，端到端时间可写为
+其中 $\mathrm{Mat}$ 表示将网络物化为完整输出张量。相应地，端到端时间可写为
 \[
 T_{\mathrm{total}} = T_{\mathrm{contract}} + T_{\mathrm{emit}},
 \]
 其中 $T_{\mathrm{contract}}$ 表示内部收缩与近似本身的代价，$T_{\mathrm{emit}}$ 表示将结果写回最终输出缓冲区的代价。
-在完整收缩场景下，$T_{\mathrm{emit}}$ 通常难以避免，因此真正值得优化的主要是 $T_{\mathrm{contract}}$。
-基于这一判断，本文把近似严格限制在\emph{内部接口}上，而不直接压缩输出边界。
+在完整物化场景下，$T_{\mathrm{emit}}$ 通常难以避免，因此真正值得优化的主要是 $T_{\mathrm{contract}}$。
+基于这一判断，本文把近似严格限制在内部传播的分隔状态上，而不直接压缩输出边界。
 
 整条方法主线可以概括为三步：
 \begin{enumerate}
     \item 在网络交互图上构造一棵二叉划分树，把一般图上的收缩过程写成一系列二叉合并；
-    \item 对每个子树，用一个从输出侧到边界侧的局部接口来概括它对外仍然可见的信息；
-    \item 沿树递归合并这些局部接口，并在每次合并后重新压缩，以控制中间状态规模。
+    \item 对每个子树，用分隔状态来概括它对外仍然可见的信息；
+    \item 沿树递归合并这些分隔状态，并在每次合并后重新压缩，以控制中间状态规模。
 \end{enumerate}
 
 \subsection{划分树与分隔状态}
@@ -161,11 +161,11 @@ M_r = U_r \Sigma_r V_r^\top,
 谱衰减快的简单节点会自动停在较低秩，而谱衰减慢的困难节点会自动保留更多通道。
 因此，自适应秩选择的关键不在于简单增大平均秩，而在于按局部难度重新分配秩预算。
 
-\subsection{隐式草图随机化压缩}
+\subsection{隐式草图合并}
 仅靠自适应秩选择还不够。
 在内部节点处，若左右孩子的秩分别为 $r_L$ 和 $r_R$，则父节点在重压缩之前自然会出现一个秩乘积 $r_L r_R$。
 如果先显式构造合并后的大接口矩阵，再对它做普通低秩分解，就会遇到“先膨胀，再压回去”的中间瓶颈。
-为此，本文在合并节点上进一步采用基于草图的隐式随机化压缩：不显式收缩完整的接口矩阵，而是通过算子访问直接恢复其主导子空间\cite{halko2011finding,heddes2026approximating}。
+为此，本文在合并节点上引入隐式草图合并：不显式形成完整的合并接口，而是通过算子访问直接恢复其主导子空间\cite{halko2011finding,heddes2026approximating}。
 
 设合并后待压缩的父节点接口为
 \[
@@ -251,54 +251,51 @@ B = V_r \Sigma_r^{1/2},
 \subsection{算法总览}
 
 为了便于整体把握，\Cref{alg:astnc} 给出本文方法的主流程。
-它把前文的几个核心部件统一起来：输出分块负责组织 full dense materialization，
-划分树负责把一般图收缩写成递归二叉合并，
-分隔状态负责在树上向上传播局部接口，
-而重压缩则用于控制中间状态规模。
-划分树构造、局部块键缓存、exact baseline 的实现接口以及随机化压缩的可重复性设置见附录~\Cref{app:method-details}。
+它把前文的几个核心部件统一起来：输出分块负责组织完整物化过程，划分树负责把一般图上的收缩写成递归二叉合并，分隔状态负责在树上向上传播局部信息，而重压缩则用于控制中间状态规模。
+划分树构造、局部块键缓存、精确收缩基线的实现接口以及随机化压缩的可重复性设置见附录~\Cref{app:method-details}。
 
 \begin{algorithm}[t]
-\caption{\method{} for blockwise open-leg tensor network materialization}
+\caption{\method{} 的完整物化主流程}
 \label{alg:astnc}
 \begin{algorithmic}[1]
-\Require Tensor network $\mathcal N$, output blocks $\{\Omega_b\}_{b=1}^B$, compression config $\theta$
-\Ensure Dense output tensor $X$
+\Require 张量网络 $\mathcal N$，输出块集合 $\{\Omega_b\}_{b=1}^B$，压缩配置 $\theta$
+\Ensure 完整输出张量 $X$
 
-\State Build partition tree $\mathcal T$ on the interaction graph of $\mathcal N$
-\State Initialize dense output buffer $X$
-\State Initialize state cache $\mathcal C$
+\State 在 $\mathcal N$ 的交互图上构造划分树 $\mathcal T$
+\State 初始化输出缓冲区 $X$
+\State 初始化状态缓存 $\mathcal C$
 
-\For{each output block $\Omega_b$}
-    \State $S_{\mathrm{root}} \gets \textsc{BuildState}(\mathrm{root}(\mathcal T), \Omega_b, \theta, \mathcal C)$
-    \State $X[\Omega_b] \gets \textsc{Readout}(S_{\mathrm{root}})$
+\For{每个输出块 $\Omega_b$}
+    \State $S_{\mathrm{root}} \gets \textsc{构造状态}(\mathrm{root}(\mathcal T), \Omega_b, \theta, \mathcal C)$
+    \State $X[\Omega_b] \gets \textsc{根节点读出}(S_{\mathrm{root}})$
 \EndFor
 \State \Return $X$
 
 \vspace{0.4em}
-\Function{BuildState}{$v, \Omega_b, \theta, \mathcal C$}
-    \If{$(v,\Omega_b,\theta)$ is reusable in cache}
-        \State \Return cached state
+\Function{构造状态}{$v, \Omega_b, \theta, \mathcal C$}
+    \If{$(v,\Omega_b,\theta)$ 对应状态已在缓存中可复用}
+        \State \Return 缓存状态
     \EndIf
 
-    \If{$v$ is a leaf}
-        \State Form local tensor $T_v$ under block restriction $\Omega_b$
-        \State Construct separator state $M_v$ on $(\mathcal O_v,\mathcal B_v)$
-        \State Compress $M_v$ if needed
-        \State Store state in cache and return
+    \If{$v$ 是叶节点}
+        \State 在输出块 $\Omega_b$ 的限制下形成局部张量 $T_v$
+        \State 在 $(\mathcal O_v,\mathcal B_v)$ 上构造分隔状态 $M_v$
+        \State 视需要对 $M_v$ 做压缩
+        \State 将状态存入缓存并返回
     \Else
-        \State $S_L \gets \textsc{BuildState}(v_L,\Omega_b,\theta,\mathcal C)$
-        \State $S_R \gets \textsc{BuildState}(v_R,\Omega_b,\theta,\mathcal C)$
-        \State Merge output-side factors of $S_L$ and $S_R$
-        \State Contract boundary-side factors along cut labels $\mathcal C_v$
-        \State Re-compress merged separator state
-        \State Store state in cache and return
+        \State $S_L \gets \textsc{构造状态}(v_L,\Omega_b,\theta,\mathcal C)$
+        \State $S_R \gets \textsc{构造状态}(v_R,\Omega_b,\theta,\mathcal C)$
+        \State 合并 $S_L$ 与 $S_R$ 的输出侧因子
+        \State 沿切割标签 $\mathcal C_v$ 收缩边界侧因子
+        \State 对合并后的分隔状态重新压缩
+        \State 将状态存入缓存并返回
     \EndIf
 \EndFunction
 
 \vspace{0.4em}
-\Function{Readout}{$S_{\mathrm{root}}$}
-    \State Collapse the final rank dimension of the root state
-    \State \Return the dense tensor block associated with $\Omega_b$
+\Function{根节点读出}{$S_{\mathrm{root}}$}
+    \State 收回根状态的最后一条秩维
+    \State \Return 与 $\Omega_b$ 对应的稠密输出块
 \EndFunction
 \end{algorithmic}
 \end{algorithm}
