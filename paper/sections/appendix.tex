@@ -14,7 +14,7 @@
 
 \paragraph{输出分块。}
 设全局开放标签顺序为 $\mathcal O=(\ell_1,\ldots,\ell_m)$。
-实现中仅对前 $q=\texttt{输出块\_label\_count}$ 个开放标签做分块。
+实现中仅对前 $q=\texttt{block\_label\_count}$ 个开放标签做分块。
 对每个被分块标签 $\ell_i$，其索引集合被按长度 $\texttt{chunk\_size}$ 划分为若干连续片段
 \[
 I_{\ell_i}^{(1)}, I_{\ell_i}^{(2)}, \ldots .
@@ -38,7 +38,7 @@ K(v,\Omega_b)
 =
 \bigl(\mathrm{node\_key}(v),\ \kappa_v(\Omega_b),\ \mathrm{sig}(\theta)\bigr),
 \]
-其中 $\mathrm{sig}(\theta)$ 表示与压缩相关的配置签名（如 rank policy、容忍度、随机化参数和优化策略等）。
+其中 $\mathrm{sig}(\theta)$ 表示与压缩相关的配置签名（如秩选择策略、容忍度、随机化参数和优化策略等）。
 只要两个全局输出块在节点 $v$ 上诱导出相同的 $\kappa_v(\Omega_b)$，则该节点状态即可直接复用。
 
 \paragraph{根节点读出。}
@@ -66,17 +66,16 @@ X_{\Omega_b} = \mathrm{contract\_full}(\mathcal N,\Omega_b),
 
 \paragraph{网络构造规则}
 主结果使用 Ring-8、Tree-8、Grid $3\times 3$ 与 Random-8。
-其中，tree 使用随机标号树生成（\texttt{networkx.random\_labeled\_tree}），节点数固定为 8；
-random\_connected 使用 Erd\H{o}s--R\'enyi 随机图并重复采样直至连通（\texttt{networkx.erdos\_renyi\_graph} + connectedness check），节点数固定为 8，边概率 $p=0.35$。
+其中，Tree-8 使用随机标号树生成（\texttt{networkx.random\_labeled\_tree}），节点数固定为 8；Random-8 使用 Erd\H{o}s--R\'enyi 随机图并重复采样直至连通（\texttt{networkx.erdos\_renyi\_graph} + connectedness check），节点数固定为 8，边概率 $p=0.35$。
 两者都由全局随机种子驱动（主实验种子为 $\{0,1,2\}$）。
 
 \paragraph{容忍度与强度预设}
 实现中对叶子和合并操作使用不同的容忍度 $\tau_{\mathrm{leaf}}$ 和 $\tau_{\mathrm{merge}}$，强度扫描三档分别为
 \[
 \begin{aligned}
-	\textsf{L1} \quad &(5.0\times10^{-4},\;2.0\times10^{-3})\\
-	\textsf{L2} \quad &(1.0\times10^{-3},\;5.0\times10^{-3})\\
-	\textsf{L3} \quad &(3.0\times10^{-3},\;1.5\times10^{-2})
+    \textsf{L1} \quad &(5.0\times10^{-4},\;2.0\times10^{-3})\\
+    \textsf{L2} \quad &(1.0\times10^{-3},\;5.0\times10^{-3})\\
+    \textsf{L3} \quad &(3.0\times10^{-3},\;1.5\times10^{-2})
 \end{aligned}
 \]
 
@@ -84,16 +83,16 @@ random\_connected 使用 Erd\H{o}s--R\'enyi 随机图并重复采样直至连通
 \[
 \tau_{\mathrm{local}}=\tau_{\mathrm{base}}\cdot(1.5)^{\mathrm{depth}}/(\max(1,\mathrm{open\_count}))^{0.5}
 \]
-自适应调整
+自适应调整。
 
 \paragraph{输出分块策略}
-主实验统一启用输出分块策略：\texttt{输出块\_labels=2}，\texttt{chunk\_size=1}。
+主实验统一启用输出分块策略：\texttt{block\_labels=2}，\texttt{chunk\_size=1}。
 即从开放腿中选 2 个标签作为分块轴，每个轴按单元素切片，逐块收缩并写回完整输出张量。
 
 \paragraph{计时口径与合理性}
 本文采用同任务、同分块、分阶段的统一计时口径。
-对每个 网络实例，先生成同一组输出分块，然后在该分块上分别运行 exact-TNC 与近似方法；因此不同方法面对的是相同的输出组织与写回负担。
-计时使用高精度时钟，并将每个 输出块 的时间拆分为 contraction 与 emit 两段并累计，最终报告
+对每个网络实例，先生成同一组输出分块，然后在该分块上分别运行 exact-TNC 与近似方法；因此不同方法面对的是相同的输出组织与写回负担。
+计时使用高精度时钟，并将每个输出块的时间拆分为收缩与写回两段并累计，最终报告
 \[
 T_{\mathrm{total}}=T_{\mathrm{contract}}+T_{\mathrm{emit}},
 \]

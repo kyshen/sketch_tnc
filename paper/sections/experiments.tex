@@ -8,12 +8,12 @@
 
 \subsection{主结果}
 
-\Cref{tab:main-core} 给出了四个网络上的比较。可以看到，固定秩基线的共同特征是极快，但在 ring、tree、grid 与随机网络上都出现了明显失真：其相对误差达到 $0.65$ 到 $0.98$。相比之下，默认 \method 配置在四个网络上都把相对误差压在 $4.81\times 10^{-3}$ 以内，同时相对 exact-TNC 仍获得 $13.98\times$ 到 $84.05\times$ 的加速。最有区分度的结果来自 Grid 3 $\times$ 3：exact-TNC 需要 $37.20$ 秒，而 \method 将总时间降到 $0.4426$ 秒，相对误差仅为 $4.08\times 10^{-3}$。在这四个网络上，\method 的几何平均加速为 $42.53\times$，平均相对误差为 $2.68\times 10^{-3}$。这说明 \method\ 在保持较高精度的同时，能够实现显著的时间加速。
+\Cref{tab:main-core} 给出了四个网络上的比较。可以看到，固定秩基线的共同特征是极快，但在 Ring-8、Tree-8、Grid $3\times 3$ 与 Random-8 上都出现了明显失真：其相对误差达到 $0.65$ 到 $0.98$。相比之下，默认 \method{} 配置在四个网络上都把相对误差压在 $4.81\times 10^{-3}$ 以内，同时相对 exact-TNC 仍获得 $13.98\times$ 到 $84.05\times$ 的加速。最有区分度的结果来自 Grid $3\times 3$：exact-TNC 需要 $37.20$ 秒，而 \method{} 将总时间降到 $0.4426$ 秒，相对误差仅为 $4.08\times 10^{-3}$。在这四个网络上，\method{} 的几何平均加速为 $42.53\times$，平均相对误差为 $2.68\times 10^{-3}$。这说明 \method\ 在保持较高精度的同时，能够实现显著的时间加速。
 
 \begin{table*}[t]
 \centering
 \footnotesize
-\caption{四个典型网络上的主结果：exact-TNC、固定秩基线与 \method 的精度--时间折中对比。}
+\caption{四个典型网络上的主结果：exact-TNC、固定秩基线与 \method{} 的精度--时间折中对比。}
 \label{tab:main-core}
 \setlength{\tabcolsep}{6pt}
 \begin{tabular}{lccccc}
@@ -22,22 +22,22 @@ Case & exact-TNC time (s) & fixed-rank rel. error & fixed-rank speedup & \method
 \midrule
 Ring-8 & 3.0072 & 0.8058 & 123.39$\times$ & 1.83$\times 10^{-3}$ & 56.31$\times$ \\
 Tree-8 & 1.1068 & 0.6524 & 57.69$\times$ & 4.81$\times 10^{-3}$ & 49.45$\times$ \\
-Grid 3 $\times$ 3 & 37.1995 & 0.9789 & 566.07$\times$ & 4.08$\times 10^{-3}$ & 84.05$\times$ \\
+Grid $3\times 3$ & 37.1995 & 0.9789 & 566.07$\times$ & 4.08$\times 10^{-3}$ & 84.05$\times$ \\
 Random-8 & 0.7326 & 0.9283 & 21.72$\times$ & $<10^{-12}$ & 13.98$\times$ \\
 \midrule
-summary & \na & \na & \na & avg. $=2.68\times 10^{-3}$ & gmean $=42.53\times$ \\
+Summary & \na & \na & \na & avg. $=2.68\times 10^{-3}$ & gmean $=42.53\times$ \\
 \bottomrule
 \end{tabular}
 \end{table*}
 
 \subsection{机制分析}
 
-本节探讨所提出方法的收益来自哪里。\Cref{tab:stage-breakdown-core} 给出的时间阶段分解证据非常明确：在四个主结果网络上，默认 \method 配置的平均 $t_{\mathrm{contract}}/t_{\mathrm{total}}$ 为 $0.9992$；其平均收缩加速比与总加速比分别为 $52.07\times$ 与 $52.03\times$，几乎完全重合。这说明 \method 的端到端收益几乎完全来自收缩阶段，而不是写入阶段的偶然波动。以 Grid 3 $\times$ 3 为例，收缩加速为 $84.36\times$，总加速为 $84.33\times$，二者在数值上几乎没有区别。
+本节探讨所提出方法的收益来自哪里。\Cref{tab:stage-breakdown-core} 给出的时间阶段分解证据非常明确：在四个主结果网络上，默认 \method{} 配置的平均 $t_{\mathrm{contract}}/t_{\mathrm{total}}$ 为 $0.9992$；其平均收缩加速比与总加速比分别为 $52.07\times$ 与 $52.03\times$，几乎完全重合。这说明 \method{} 的端到端收益几乎完全来自收缩阶段，而不是写入阶段的偶然波动。以 Grid $3\times 3$ 为例，收缩加速为 $84.36\times$，总加速为 $84.33\times$，二者在数值上几乎没有区别。
 
 \begin{table}[t]
 \centering
 \small
-\caption{时间阶段分解证据：\method\ 的端到端收益几乎全部来自收缩阶段，而非输出写回。}
+\caption{时间阶段分解证据：\method{} 的端到端收益几乎全部来自收缩阶段，而非输出写回。}
 \label{tab:stage-breakdown-core}
 \begin{adjustbox}{max width=\columnwidth}
 \begin{tabular}{lcccc}
@@ -46,7 +46,7 @@ Case & $t_{\mathrm{contract}}/t_{\mathrm{total}}$ & $t_{\mathrm{emit}}/t_{\mathr
 \midrule
 Ring-8 & 0.9993 & 0.000694 & 56.37$\times$ & 56.33$\times$ \\
 Tree-8 & 0.9985 & 0.001454 & 50.65$\times$ & 50.58$\times$ \\
-Grid 3 $\times$ 3 & 0.9997 & 0.000333 & 84.36$\times$ & 84.33$\times$ \\
+Grid $3\times 3$ & 0.9997 & 0.000333 & 84.36$\times$ & 84.33$\times$ \\
 Random-8 & 0.9993 & 0.000722 & 16.92$\times$ & 16.91$\times$ \\
 \midrule
 Average & 0.9992 & 0.000801 & 52.07$\times$ & 52.03$\times$ \\
@@ -55,12 +55,12 @@ Average & 0.9992 & 0.000801 & 52.07$\times$ & 52.03$\times$ \\
 \end{adjustbox}
 \end{table}
 
-在机制层面，我们用 Grid 3 $\times$ 3 这一最具区分度的网络来隔离关键因素，如 \Cref{tab:grid-mechanism} 所示。去掉隐式草图合并机制后，误差几乎不变，但总时间恶化到默认设置的 $6.97\times$；这说明隐式草图合并降低内部合并成本且不牺牲精度。去掉输出分块机制后，总时间变为 $2.40\times$，同时误差从 $4.08\times 10^{-3}$ 上升到 $1.06\times 10^{-2}$。因此，就 harder case 而言，隐式草图合并是核心、稳定的效率来源，而输出分块也具有实质作用。
+在机制层面，我们用 Grid $3\times 3$ 这一最具区分度的网络来隔离关键因素，如 \Cref{tab:grid-mechanism} 所示。去掉隐式草图合并机制后，误差几乎不变，但总时间恶化到默认设置的 $6.97\times$；这说明隐式草图合并降低内部合并成本且不牺牲精度。去掉输出分块机制后，总时间变为 $2.40\times$，同时误差从 $4.08\times 10^{-3}$ 上升到 $1.06\times 10^{-2}$。因此，对于这一更困难的网络，隐式草图合并是核心且稳定的效率来源，而输出分块也具有实质作用。
 
 \begin{table}[t]
 \centering
 \small
-\caption{Grid 3 $\times$ 3 上的核心机制证据。}
+\caption{Grid $3\times 3$ 上的核心机制证据。}
 \label{tab:grid-mechanism}
 \begin{adjustbox}{max width=\columnwidth}
 \begin{tabular}{lccc}
@@ -77,7 +77,7 @@ no-implicit & 4.08$\times 10^{-3}$ & 3.0838 & 6.97 \\
 
 \subsection{近似强度调控}
 
-本节探究近似强度 $\tau$ 是否能稳定控制误差。\Cref{tab:strength-sensitivity-core} 表明，从 \textsf{L1} 到 \textsf{L2} 再到 \textsf{L3}，误差整体上呈现清楚的递增关系。以 Ring-8 为例，相对误差从 $<10^{-12}$ 上升到 $1.83\times 10^{-3}$，再到 $1.55\times 10^{-2}$；在 Grid 3 $\times$ 3 上，则从 $<10^{-12}$ 上升到 $4.08\times 10^{-3}$，再到 $1.81\times 10^{-2}$；Random-8 上 \textsf{L1}/\textsf{L2} 近乎无误差，而 \textsf{L3} 上升到 $1.26\times 10^{-2}$。因此，近似强度首先是 \method\ 控制误差的旋钮：更强的近似通常带来更大的误差，而较弱的近似则更接近精确结果。
+本节探究近似强度 $\tau$ 是否能稳定控制误差。\Cref{tab:strength-sensitivity-core} 表明，从 \textsf{L1} 到 \textsf{L2} 再到 \textsf{L3}，误差整体上呈现清楚的递增关系。以 Ring-8 为例，相对误差从 $<10^{-12}$ 上升到 $1.83\times 10^{-3}$，再到 $1.55\times 10^{-2}$；在 Grid $3\times 3$ 上，则从 $<10^{-12}$ 上升到 $4.08\times 10^{-3}$，再到 $1.81\times 10^{-2}$；Random-8 上 \textsf{L1}/\textsf{L2} 近乎无误差，而 \textsf{L3} 上升到 $1.26\times 10^{-2}$。因此，近似强度首先是 \method\ 控制误差的旋钮：更强的近似通常带来更大的误差，而较弱的近似则更接近精确结果。由于 Tree-8 的趋势与 Ring-8 类似，表中略去。
 
 \begin{table}[t]
 \centering
@@ -90,7 +90,7 @@ no-implicit & 4.08$\times 10^{-3}$ & 3.0838 & 6.97 \\
 Case & L1 rel. error & L2 rel. error & L3 rel. error \\
 \midrule
 Ring-8 & $<10^{-12}$ & 1.83$\times 10^{-3}$ & 1.55$\times 10^{-2}$ \\
-Grid 3 $\times$ 3 & $<10^{-12}$ & 4.08$\times 10^{-3}$ & 1.81$\times 10^{-2}$ \\
+Grid $3\times 3$ & $<10^{-12}$ & 4.08$\times 10^{-3}$ & 1.81$\times 10^{-2}$ \\
 Random-8 & $<10^{-12}$ & $<10^{-12}$ & 1.26$\times 10^{-2}$ \\
 \midrule
 Average rel. error & $<10^{-12}$ & 1.97$\times 10^{-3}$ & 1.54$\times 10^{-2}$ \\
