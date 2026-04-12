@@ -6,7 +6,7 @@
 \[
 X = \mathrm{Mat}(\mathcal N) \in \mathbb{R}^{d_1 \times \cdots \times d_{|\mathcal O|}}.
 \]
-相应地，端到端时间可写为
+其中Mat表示将网络物化为完整输出张量。相应地，端到端时间可写为
 \[
 T_{\mathrm{total}} = T_{\mathrm{contract}} + T_{\mathrm{emit}},
 \]
@@ -22,7 +22,7 @@ T_{\mathrm{total}} = T_{\mathrm{contract}} + T_{\mathrm{emit}},
 \end{enumerate}
 
 \subsection{划分树与分隔状态}
-为了统一组织一般图上的递归收缩，我们在张量网络的交互图上构造一棵二叉划分树（partition tree）。
+为了统一组织一般图上的递归收缩，我们在张量网络的交互图上构造一棵划分树（partition tree）。
 树上的每个节点 $v$ 对应一个子网络 $\mathcal N_v$；叶节点对应单个原始张量，内部节点对应两个子网络的合并，根节点对应整个网络。
 
 对任意节点 $v$，我们关心三类标签：
@@ -161,11 +161,11 @@ M_r = U_r \Sigma_r V_r^\top,
 谱衰减快的简单节点会自动停在较低秩，而谱衰减慢的困难节点会自动保留更多通道。
 因此，自适应秩选择的关键不在于简单增大平均秩，而在于按局部难度重新分配秩预算。
 
-\subsection{基于 sketch 的随机化压缩}
+\subsection{隐式草图随机化压缩}
 仅靠自适应秩选择还不够。
 在内部节点处，若左右孩子的秩分别为 $r_L$ 和 $r_R$，则父节点在重压缩之前自然会出现一个秩乘积 $r_L r_R$。
 如果先显式构造合并后的大接口矩阵，再对它做普通低秩分解，就会遇到“先膨胀，再压回去”的中间瓶颈。
-为此，本文在合并节点上进一步采用基于 sketch 的随机化压缩：不显式收缩完整的接口矩阵，而是通过算子访问直接恢复其主导子空间\cite{halko2011finding,heddes2026approximating}。
+为此，本文在合并节点上进一步采用基于草图的隐式随机化压缩：不显式收缩完整的接口矩阵，而是通过算子访问直接恢复其主导子空间\cite{halko2011finding,heddes2026approximating}。
 
 设合并后待压缩的父节点接口为
 \[
