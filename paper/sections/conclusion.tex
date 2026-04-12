@@ -1,8 +1,9 @@
 \section{结论}
 
-本文研究了带开放腿张量网络的完整稠密物化问题，并提出了面向这一任务的 output-sensitive approximate contraction 框架 \method。
-与通常面向标量收缩或局部查询的近似方法不同，本文始终保持输出边界显式存在，只对内部接口状态做近似，并通过 blockwise output organization、划分树递归、分隔状态压缩和 implicit merge sketch 将这一思路组织成统一流程。
+本文研究了带开放腿张量网络的完整稠密物化问题。与传统近似收缩主要面向标量收缩值或局部查询不同，本文关注的是这样一类更受输出接口约束的任务：最终结果必须以完整张量的形式被显式生成，因此方法设计不能通过改变输出形式来规避计算代价。在这一设定下，本文将优化重点明确放在内部收缩阶段，并提出了面向该任务的 output-sensitive approximate contraction 框架 \method{}。
 
-实验给出的主信息是清楚而集中的：在 Ring-8、Tree-8、Grid $3\times 3$ 与 Random-8 上，\method 能够形成可用的精度--时间折中；其端到端收益几乎完全来自 contraction 阶段；implicit merge sketch 是更核心的效率来源，而 blockwise output organization 在 Grid 和随机图上具有实质作用。与此同时，强度扫描表明近似强度首先是控制误差的旋钮。
+围绕这一目标，本文将完整物化过程组织为一条统一流程：先对输出索引空间进行分块，再在网络交互图上构造划分树，并沿树递归维护保持输出边界显式存在的分隔状态；在状态传播过程中，通过自适应低秩压缩和 implicit merge sketch 抑制内部接口在合并阶段的维度膨胀。因而，\method{} 近似的不是最终输出对象，而是生成该输出过程中必须经过的内部接口状态。
 
-未来工作可沿两个方向展开：其一，是进一步提升更大规模下的完成率与系统稳定性；其二，是继续细化 selective approximation、cache 与更丰富的 sketch 策略，使机制层面的收益能够在更广 workload 上更稳定地体现出来。
+实验结果表明，\method{} 在 Ring-8、Tree-8、Grid $3\times 3$ 与 Random-8 上能够形成清楚且可用的精度--时间折中：在保持较小相对误差的同时，相对直接 TNC 获得显著加速。进一步的阶段拆解与机制分析说明，端到端收益几乎完全来自 contraction 阶段；其中，implicit merge sketch 是更核心也更稳定的效率来源，而 blockwise output organization 在较难网络上同样具有实质作用。强度扫描实验则进一步表明，近似强度可以作为控制误差与时间权衡的有效调节旋钮。
+
+总体而言，本文说明了：当完整输出是不可更改的任务要求时，近似收缩的合理位置并不在输出端，而在内部接口状态。沿着这一思路，划分树递归、分隔状态表示与草图驱动压缩可以被组织成一个统一且有效的完整物化框架。未来工作可进一步面向更大规模与更复杂 workload，继续完善 selective approximation、缓存复用和更丰富的 sketch 策略，使这种面向完整物化的近似收缩方法在更广泛场景下发挥作用。
