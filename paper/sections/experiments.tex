@@ -4,7 +4,7 @@
 
 \subsection{实验设置}
 
-我们主要报告四类有代表性的经典网络：ring~\cite{bondy2008graph}、tree~\cite{diestel2017graph}、grid2d~\cite{levin2007trg,orus2014practical} 与随机网络~\cite{erdos1959random,gilbert1959random}，具体为：Ring-8、Tree-8、Grid 3 $\times$ 3 与 Random-8（8 为节点数，3 $\times$ 3代表二维网格）；每个节点都带 1 条开放腿，物理维统一取 $3$，bond 维统一取 4。\textsf{\method-L1/L2/L3}对应不同的近似强度，除特别说明外，\textsf{\method} 指中等强度预设。对比方法包括精确收缩 exact-TNC、固定秩基线与 \method。固定秩基线统一设置秩为4，目的是提供一个明确的“小秩快速近似”参照。其他关键细节（网络构造、容忍度$\tau$、分块策略等）见附录~\Cref{app:exp-details}。
+我们主要报告四类有代表性的经典网络：Ring-8~\cite{bondy2008graph}、Tree-8~\cite{diestel2017graph}、Grid $3\times 3$~\cite{levin2007trg,orus2014practical} 与 Random-8~\cite{erdos1959random,gilbert1959random}；其中，8 表示节点数，$3\times 3$ 表示二维网格规模。每个节点都带 1 条开放腿，物理维统一取 $3$，键维统一取 $4$。\textsf{\method-L1/L2/L3} 对应不同的近似强度，除特别说明外，\textsf{\method} 指中等强度预设。对比方法包括精确收缩基线 exact-TNC、固定秩基线与 \method{}。固定秩基线统一设置秩为 4，目的是提供一个明确的“小秩快速近似”参照。其他关键细节（网络构造、容忍度 $\tau$、分块策略等）见附录~\Cref{app:exp-details}。
 
 \subsection{主结果}
 
