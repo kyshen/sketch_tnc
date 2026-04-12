@@ -325,6 +325,12 @@ INPUT c:/texlive/2026/texmf-dist/tex/latex/biblatex/biblatex.cfg
 INPUT c:/texlive/2026/texmf-dist/tex/latex/biblatex/biblatex.cfg
 INPUT c:/texlive/2026/texmf-dist/tex/latex/biblatex/blx-case-expl3.sty
 INPUT c:/texlive/2026/texmf-dist/tex/latex/biblatex/blx-case-expl3.sty
+INPUT c:/texlive/2026/texmf-dist/tex/latex/algorithms/algorithm.sty
+INPUT c:/texlive/2026/texmf-dist/tex/latex/algorithms/algorithm.sty
+INPUT c:/texlive/2026/texmf-dist/tex/latex/algorithmicx/algpseudocode.sty
+INPUT c:/texlive/2026/texmf-dist/tex/latex/algorithmicx/algpseudocode.sty
+INPUT c:/texlive/2026/texmf-dist/tex/latex/algorithmicx/algorithmicx.sty
+INPUT c:/texlive/2026/texmf-dist/tex/latex/algorithmicx/algorithmicx.sty
 INPUT c:/texlive/2026/texmf-dist/tex/latex/graphics/color.sty
 INPUT ./paper.aux
 INPUT ./paper.aux

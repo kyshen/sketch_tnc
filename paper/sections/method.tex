@@ -248,74 +248,57 @@ B = V_r \Sigma_r^{1/2},
 \]
 这里，自适应秩选择决定“最终保留多少通道”，而随机化压缩决定“如何在不显式收缩大接口的情况下找到这些通道”。
 
-\subsection{实现细节与复现机制补充}
+\subsection{算法总览}
 
-为了使上述方法具有可复现性，这里进一步说明划分树构造、输出分块、根节点读出、块间缓存以及 exact baseline 的具体实现机制。
+为了便于整体把握，\Cref{alg:astnc} 给出本文方法的主流程。
+它把前文的几个核心部件统一起来：输出分块负责组织 full dense materialization，
+划分树负责把一般图收缩写成递归二叉合并，
+分隔状态负责在树上向上传播局部接口，
+而重压缩则用于控制中间状态规模。
+划分树构造、局部块键缓存、exact baseline 的实现接口以及随机化压缩的可重复性设置见附录~\Cref{app:method-details}。
 
-\paragraph{划分树构造。}
-设张量网络的交互图为 $G=(V,E,w)$，其中每个节点对应一个原始张量；若两个张量共享内部标签，则在它们之间连边。
-当前实现中，边权由共享内部标签的维度贡献累加得到。
-在任意子图 $G[U]$ 上，我们递归执行一次二分：若子图连通，则使用 Stoer--Wagner min-cut 得到 $U_L,U_R$；若子图退化或无边，则回退为“单节点 vs 其余节点”的划分。
-据此自底向上构造一棵二叉划分树。
-对于任意树节点 $v$（对应子网络 $\mathcal N_v$），其输出标签、边界标签与切割标签分别记为 $\mathcal O_v,\mathcal B_v,\mathcal C_v$。
+\begin{algorithm}[t]
+\caption{\method{} for blockwise open-leg tensor network materialization}
+\label{alg:astnc}
+\begin{algorithmic}[1]
+\Require Tensor network $\mathcal N$, output blocks $\{\Omega_b\}_{b=1}^B$, compression config $\theta$
+\Ensure Dense output tensor $X$
 
-\paragraph{输出分块。}
-设全局开放标签顺序为 $\mathcal O=(\ell_1,\ldots,\ell_m)$。
-实现中仅对前 $q=\texttt{block\_label\_count}$ 个开放标签做分块。
-对每个被分块标签 $\ell_i$，其索引集合被按长度 $\texttt{chunk\_size}$ 划分为若干连续片段
-\[
-I_{\ell_i}^{(1)}, I_{\ell_i}^{(2)}, \ldots .
-\]
-一个输出块 $\Omega_b$ 即为这些局部片段的笛卡尔积。
-因此，分块后的 block 不只是输出写回时的调度单元，它还会直接改变各子树在当前块下的局部输出维度。
+\State Build partition tree $\mathcal T$ on the interaction graph of $\mathcal N$
+\State Initialize dense output buffer $X$
+\State Initialize state cache $\mathcal C$
 
-\paragraph{局部块键与块间缓存。}
-对树节点 $v$ 和输出块 $\Omega_b$，我们定义其局部块键
-\[
-\kappa_v(\Omega_b)
-=
-\bigl\{
-(\ell, I_{b,\ell}) \;:\; \ell\in \mathcal O_v,\ \ell \text{ 在当前块中被切片}
-\bigr\}.
-\]
-也就是说，$\kappa_v(\Omega_b)$ 只保留该子树真正“看得见”的局部切片条件，而忽略与该子树无关的其他块信息。
-于是，节点状态缓存可写为
-\[
-K(v,\Omega_b)
-=
-\bigl(\mathrm{node\_key}(v),\ \kappa_v(\Omega_b),\ \mathrm{sig}(\theta)\bigr),
-\]
-其中 $\mathrm{sig}(\theta)$ 表示与压缩相关的配置签名（如 rank policy、容忍度、随机化参数和优化策略等）。
-只要两个全局输出块在节点 $v$ 上诱导出相同的 $\kappa_v(\Omega_b)$，则该节点状态即可直接复用。
+\For{each output block $\Omega_b$}
+    \State $S_{\mathrm{root}} \gets \textsc{BuildState}(\mathrm{root}(\mathcal T), \Omega_b, \theta, \mathcal C)$
+    \State $X[\Omega_b] \gets \textsc{Readout}(S_{\mathrm{root}})$
+\EndFor
+\State \Return $X$
 
-\paragraph{根节点读出。}
-当递归合并到根节点时，由于根节点已对应整个网络，其边界标签为空，即 $\mathcal B_{\mathrm{root}}=\varnothing$。
-因此，根状态不再表示一般的“输出侧 $\times$ 边界侧”接口，而是直接退化为当前输出块的稠密结果。
-若根状态写为 $M_{\mathrm{root}} \approx A_{\mathrm{root}} B_{\mathrm{root}}^\top$，则当前块输出由最后一条秩维收回得到。
+\vspace{0.4em}
+\Function{BuildState}{$v, \Omega_b, \theta, \mathcal C$}
+    \If{$(v,\Omega_b,\theta)$ is reusable in cache}
+        \State \Return cached state
+    \EndIf
 
-\paragraph{Exact-TNC baseline。}
-本文的 exact materialization baseline 与 ASTNC 共用同一张量网络对象和同一输出标签顺序。
-对每个输出块 $\Omega_b$，exact baseline 直接调用全网络精确收缩
-\[
-X_{\Omega_b} = \mathrm{contract\_full}(\mathcal N,\Omega_b),
-\]
-其底层实现基于 \texttt{opt\_einsum} 的精确张量收缩接口，并按给定的 \texttt{optimize} 策略执行。
-因此，ASTNC 与 exact baseline 的主要差异不在输出接口，而在于 ASTNC 以分隔状态递归替代了内部全量收缩过程。
+    \If{$v$ is a leaf}
+        \State Form local tensor $T_v$ under block restriction $\Omega_b$
+        \State Construct separator state $M_v$ on $(\mathcal O_v,\mathcal B_v)$
+        \State Compress $M_v$ if needed
+        \State Store state in cache and return
+    \Else
+        \State $S_L \gets \textsc{BuildState}(v_L,\Omega_b,\theta,\mathcal C)$
+        \State $S_R \gets \textsc{BuildState}(v_R,\Omega_b,\theta,\mathcal C)$
+        \State Merge output-side factors of $S_L$ and $S_R$
+        \State Contract boundary-side factors along cut labels $\mathcal C_v$
+        \State Re-compress merged separator state
+        \State Store state in cache and return
+    \EndIf
+\EndFunction
 
-\paragraph{复现说明。}
-在随机化压缩中，当前实现采用由基础随机种子与状态键共同确定的确定性伪随机数生成方式。
-因此，同一网络、同一输出块、同一树节点和同一配置下，得到的随机化压缩结果是可重复的。
-
-\subsection{小结}
-综上，本文方法围绕一个统一对象展开：\emph{分隔状态}。
-划分树规定了这些状态如何被组织，递归合并规定了它们如何在树上向上传播，低秩压缩则保证这一传播在计算上可控。
-输出分块、根节点读出和块间缓存，都服务于这一主线。
-因此，本文的方法可以概括为
-\[
-\text{划分树}
-\;+
-\text{保持输出边界的分隔状态}
-\;+
-\text{递归合并与重压缩}.
-\]
-它近似的不是最终输出，而是在保持输出边界语义不变的前提下，对树上递归传播的内部接口状态做近似。
+\vspace{0.4em}
+\Function{Readout}{$S_{\mathrm{root}}$}
+    \State Collapse the final rank dimension of the root state
+    \State \Return the dense tensor block associated with $\Omega_b$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
