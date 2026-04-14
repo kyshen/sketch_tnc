@@ -1,0 +1,113 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\providecommand\HyField@AuxAddToFields[1]{}
+\providecommand\HyField@AuxAddToCoFields[2]{}
+\citation{orus2014practical}
+\citation{markov2008simulating,dumitrescu2018benchmarking,jakes2019carving,gray2021hyperoptimized,huang2021efficient,pan2020contracting,gray2024hyperoptimized,ma2024approximate}
+\citation{orus2014practical,dechter1998bucket,pan2020contracting,heddes2026approximating}
+\citation{jakes2019carving}
+\providecommand \oddpage@label [2]{}
+\@writefile{toc}{\contentsline {section}{\numberline {1}Introduction}{1}{section.1}\protected@file@percent }
+\citation{markov2008simulating,dumitrescu2018benchmarking,jakes2019carving,gray2021hyperoptimized}
+\citation{huang2021efficient}
+\citation{levin2007trg}
+\citation{pan2020contracting}
+\citation{gray2024hyperoptimized}
+\citation{ma2024approximate}
+\citation{halko2011finding}
+\citation{charikar2004finding,pham2013fast}
+\citation{heddes2026approximating}
+\citation{dechter1996bucket,dechter1997mini}
+\@writefile{toc}{\contentsline {section}{\numberline {2}Related Work}{2}{section.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Exact tensor network contraction.}{2}{section*.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Approximate contraction and intermediate-state compression.}{2}{section*.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Randomized low-rank approximation and sketching.}{2}{section*.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Connections to elimination in graphical models.}{2}{section*.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3}Method}{2}{section.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1}Overview}{2}{subsection.3.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}Partition tree and separator states}{3}{subsection.3.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}Recursive merging on the tree}{3}{subsection.3.3}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Leaf nodes.}{3}{section*.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Internal nodes.}{3}{section*.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{(i) Merge the output side.}{3}{section*.8}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{(ii) Contract cut labels and keep boundary labels.}{3}{section*.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{(iii) Recompress.}{3}{section*.10}\protected@file@percent }
+\citation{halko2011finding,heddes2026approximating}
+\citation{halko2011finding}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}Adaptive rank selection}{4}{subsection.3.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.5}Implicit sketch-based merging}{4}{subsection.3.5}\protected@file@percent }
+\citation{bondy2008graph}
+\citation{diestel2017graph}
+\citation{levin2007trg,orus2014practical}
+\citation{erdos1959random,gilbert1959random}
+\@writefile{loa}{\contentsline {algorithm}{\numberline {1}{\ignorespaces Full-materialization pipeline of \textsf  {AS-TNC}{}}}{5}{algorithm.1}\protected@file@percent }
+\providecommand*\caption@xref[2]{\@setref\relax\@undefined{#1}}
+\newlabel{alg:astnc}{{1}{5}{Full-materialization pipeline of \method {}}{algorithm.1}{}}
+\newlabel{alg:astnc@cref}{{[algorithm][1][]1}{[1][5][]5}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.6}Algorithm summary}{5}{subsection.3.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4}Experiments}{5}{section.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1}Experimental setup}{5}{subsection.4.1}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2}Main results}{5}{subsection.4.2}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3}Where do the gains come from?}{5}{subsection.4.3}\protected@file@percent }
+\bibstyle{unsrtnat}
+\bibdata{ref}
+\bibcite{orus2014practical}{{1}{2014}{{Or{\'u}s}}{{}}}
+\bibcite{markov2008simulating}{{2}{2008}{{Markov and Shi}}{{}}}
+\bibcite{dumitrescu2018benchmarking}{{3}{2018}{{Dumitrescu et~al.}}{{Dumitrescu, Fisher, Goodrich, Humble, Sullivan, and Wright}}}
+\bibcite{jakes2019carving}{{4}{2019}{{Jakes-Schauer et~al.}}{{Jakes-Schauer, Anekstein, and Wocjan}}}
+\@writefile{lot}{\contentsline {table}{\numberline {1}{\ignorespaces Main results on four representative networks. \textsf  {AS-TNC}{} provides a strong accuracy-time trade-off compared with exact contraction and a fixed-rank approximation baseline.}}{6}{table.caption.11}\protected@file@percent }
+\newlabel{tab:main-core}{{1}{6}{Main results on four representative networks. \method {} provides a strong accuracy-time trade-off compared with exact contraction and a fixed-rank approximation baseline}{table.caption.11}{}}
+\newlabel{tab:main-core@cref}{{[table][1][]1}{[1][5][]6}{}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {2}{\ignorespaces Stage-time decomposition. The end-to-end gains of \textsf  {AS-TNC}{} are almost entirely explained by contraction-side acceleration rather than output write-back.}}{6}{table.caption.12}\protected@file@percent }
+\newlabel{tab:stage-breakdown-core}{{2}{6}{Stage-time decomposition. The end-to-end gains of \method {} are almost entirely explained by contraction-side acceleration rather than output write-back}{table.caption.12}{}}
+\newlabel{tab:stage-breakdown-core@cref}{{[table][2][]2}{[1][5][]6}{}{}{}}
+\@writefile{lot}{\contentsline {table}{\numberline {3}{\ignorespaces Mechanism evidence on Grid $3\times 3$. Implicit sketch-based merging is the dominant efficiency source, while output blocking also matters.}}{6}{table.caption.13}\protected@file@percent }
+\newlabel{tab:grid-mechanism}{{3}{6}{Mechanism evidence on Grid $3\times 3$. Implicit sketch-based merging is the dominant efficiency source, while output blocking also matters}{table.caption.13}{}}
+\newlabel{tab:grid-mechanism@cref}{{[table][3][]3}{[1][5][]6}{}{}{}}
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.4}Approximation-strength control}{6}{subsection.4.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5}Conclusion}{6}{section.5}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {4}{\ignorespaces Sensitivity to approximation strength. Stronger approximation leads to larger relative error in a consistent way.}}{6}{table.caption.14}\protected@file@percent }
+\newlabel{tab:strength-sensitivity-core}{{4}{6}{Sensitivity to approximation strength. Stronger approximation leads to larger relative error in a consistent way}{table.caption.14}{}}
+\newlabel{tab:strength-sensitivity-core@cref}{{[table][4][]4}{[1][6][]6}{}{}{}}
+\bibcite{gray2021hyperoptimized}{{5}{2021}{{Gray and Kourtis}}{{}}}
+\bibcite{huang2021efficient}{{6}{2021}{{Huang et~al.}}{{Huang, Zhang, Newman, Ni, Ding, Cai, Gao, Wang, Wu, Zhang, et~al.}}}
+\bibcite{pan2020contracting}{{7}{2020}{{Pan et~al.}}{{Pan, Zhou, Li, and Zhang}}}
+\bibcite{gray2024hyperoptimized}{{8}{2024}{{Gray and Chan}}{{}}}
+\bibcite{ma2024approximate}{{9}{2024}{{Ma et~al.}}{{Ma, Fishman, Stoudenmire, and Solomonik}}}
+\bibcite{dechter1998bucket}{{10}{1998}{{Dechter}}{{}}}
+\bibcite{heddes2026approximating}{{11}{2026}{{Heddes et~al.}}{{Heddes, Nunes, Givargis, and Nicolau}}}
+\bibcite{levin2007trg}{{12}{2007}{{Levin and Nave}}{{}}}
+\bibcite{halko2011finding}{{13}{2011}{{Halko et~al.}}{{Halko, Martinsson, and Tropp}}}
+\bibcite{charikar2004finding}{{14}{2004}{{Charikar et~al.}}{{Charikar, Chen, and Farach-Colton}}}
+\bibcite{pham2013fast}{{15}{2013}{{Pham and Pagh}}{{}}}
+\bibcite{dechter1996bucket}{{16}{1996}{{Dechter}}{{}}}
+\bibcite{dechter1997mini}{{17}{1997}{{Dechter and Rish}}{{}}}
+\bibcite{bondy2008graph}{{18}{2008}{{Bondy and Murty}}{{}}}
+\bibcite{diestel2017graph}{{19}{2017}{{Diestel}}{{}}}
+\bibcite{erdos1959random}{{20}{1959}{{Erd\H {o}s and R{\'e}nyi}}{{}}}
+\bibcite{gilbert1959random}{{21}{1959}{{Gilbert}}{{}}}
+\@writefile{toc}{\contentsline {section}{\numberline {A}Appendix}{8}{appendix.A}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.1}Implementation details}{8}{subsection.A.1}\protected@file@percent }
+\newlabel{app:method-details}{{A.1}{8}{Implementation details}{subsection.A.1}{}}
+\newlabel{app:method-details@cref}{{[subsection][1][1]A.1}{[1][8][]8}{}{}{}}
+\@writefile{toc}{\contentsline {paragraph}{Partition-tree construction.}{8}{section*.16}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Output blocking.}{8}{section*.17}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Local block keys and cross-block caching.}{8}{section*.18}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Root readout.}{8}{section*.19}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Exact-contraction baseline.}{8}{section*.20}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Reproducibility.}{8}{section*.21}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.2}Experimental details}{8}{subsection.A.2}\protected@file@percent }
+\newlabel{app:exp-details}{{A.2}{8}{Experimental details}{subsection.A.2}{}}
+\newlabel{app:exp-details@cref}{{[subsection][2][1]A.2}{[1][8][]8}{}{}{}}
+\@writefile{toc}{\contentsline {paragraph}{Network generation.}{8}{section*.22}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Tolerance presets.}{8}{section*.23}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Output-blocking policy.}{8}{section*.24}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{Timing protocol.}{8}{section*.25}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {A.3}Supplementary visual summary}{9}{subsection.A.3}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {1}{\ignorespaces Supplementary runtime overview across the main benchmark cases. The figure is reused from the original \texttt  {paper} assets and can be included directly in an arXiv upload.}}{10}{figure.caption.26}\protected@file@percent }
+\newlabel{fig:main-runtime}{{1}{10}{Supplementary runtime overview across the main benchmark cases. The figure is reused from the original \texttt {paper} assets and can be included directly in an arXiv upload}{figure.caption.26}{}}
+\newlabel{fig:main-runtime@cref}{{[figure][1][]1}{[1][9][]10}{}{}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Supplementary regime-status summary across topologies and scales. This figure provides a broader context for the easy, medium, and boundary regimes discussed in the original drafting materials.}}{10}{figure.caption.27}\protected@file@percent }
+\newlabel{fig:regime-status}{{2}{10}{Supplementary regime-status summary across topologies and scales. This figure provides a broader context for the easy, medium, and boundary regimes discussed in the original drafting materials}{figure.caption.27}{}}
+\newlabel{fig:regime-status@cref}{{[figure][2][]2}{[1][9][]10}{}{}{}}
+\gdef \@abspage@last{10}

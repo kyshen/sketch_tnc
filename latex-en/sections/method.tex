@@ -1,0 +1,262 @@
+\section{Method}
+
+\subsection{Overview}
+
+Let $\mathcal N$ be a tensor network with open-leg set $\mathcal O$ and internal contraction label set $\mathcal I$. Contracting all internal labels yields the full output tensor
+\[
+X = \mathrm{Mat}(\mathcal N) \in \RR^{d_1 \times \cdots \times d_{|\mathcal O|}},
+\]
+where $\mathrm{Mat}$ denotes dense materialization of the network. The end-to-end cost is
+\[
+T_{\mathrm{total}} = T_{\mathrm{contract}} + T_{\mathrm{emit}},
+\]
+with $T_{\mathrm{contract}}$ the cost of internal contraction and approximation, and $T_{\mathrm{emit}}$ the cost of writing the result into the output buffer. In the full-materialization regime, $T_{\mathrm{emit}}$ is largely unavoidable, so our method targets $T_{\mathrm{contract}}$ by approximating only the separator states propagated inside the network, never the output boundary itself.
+
+The pipeline has three main components:
+\begin{enumerate}
+    \item build a binary partition tree on the interaction graph so that contraction on a general graph becomes a sequence of binary merges;
+    \item represent each subtree by a separator state that summarizes the information still visible to the rest of the network; and
+    \item recursively merge those separator states and recompress them after each merge to control intermediate growth.
+\end{enumerate}
+
+\subsection{Partition tree and separator states}
+
+To organize recursive contraction on a general graph, we construct a partition tree over the interaction graph of the tensor network. Each tree node $v$ corresponds to a sub-network $\mathcal N_v$. Leaves correspond to original tensors, internal nodes correspond to merges of two child sub-networks, and the root corresponds to the full network.
+
+For each node $v$, we track three sets of labels:
+\begin{itemize}
+    \item \textbf{output labels} $\mathcal O_v$, which remain connected to the final output side;
+    \item \textbf{boundary labels} $\mathcal B_v$, which connect the subtree to the rest of the network; and
+    \item \textbf{cut labels} $\mathcal C_v$, which connect the left and right children and are eliminated at the current merge.
+\end{itemize}
+The root has no boundary labels because it is no longer connected to an exterior network, and leaves have no cut labels because they are not further split.
+
+Given an output block $\Omega_b$, we define the \emph{separator state} at node $v$ as
+\[
+M_v \in \RR^{d_{\mathrm{open}}(v) \times d_{\mathrm{bnd}}(v)},
+\]
+where
+\[
+d_{\mathrm{open}}(v)=\prod_{\ell\in\mathcal O_v} d_{\ell},
+\qquad
+d_{\mathrm{bnd}}(v)=\prod_{\ell\in\mathcal B_v} d_{\ell}.
+\]
+Here $d_\ell$ denotes the local dimension of label $\ell$ under the current output block. Rows of $M_v$ index output-side configurations and columns index boundary-side configurations. Thus, $M_v$ captures the local behavior of subtree $\mathcal N_v$ that is visible to its parent under block $\Omega_b$.
+
+Explicitly storing $M_v$ is often too expensive, so we work with a low-rank factorization
+\[
+M_v \approx A_v B_v^\top,
+\]
+with
+\[
+A_v \in \RR^{d_{\mathrm{open}}(v) \times r_v},
+\qquad
+B_v \in \RR^{d_{\mathrm{bnd}}(v) \times r_v},
+\]
+where $r_v$ is the interface rank. This representation cleanly separates the output side from the boundary side and makes the approximation location explicit: the output boundary is preserved, while only the separator state is compressed.
+
+\subsection{Recursive merging on the tree}
+
+Once separator states are defined, the computation on the partition tree becomes a uniform recursion.
+
+\paragraph{Leaf nodes.}
+For a leaf node $v$, the sub-network contains only one original tensor. After restricting open labels to the current output block, we reshape the tensor into
+\[
+T_v \in \RR^{d_{\mathrm{open}}(v) \times d_{\mathrm{bnd}}(v)}.
+\]
+Without approximation, $T_v$ is the exact separator state. With approximation, we compress $T_v$ into the factorized form $A_v B_v^\top$.
+
+\paragraph{Internal nodes.}
+Let the children of internal node $v$ be $v_L$ and $v_R$, with separator states
+\[
+M_{v_L} \approx A_{v_L} B_{v_L}^\top,
+\qquad
+M_{v_R} \approx A_{v_R} B_{v_R}^\top.
+\]
+The parent state is built in three steps.
+
+\paragraph{(i) Merge the output side.}
+Because
+\[
+\mathcal O_v = \mathcal O_{v_L} \cup \mathcal O_{v_R},
+\qquad
+\mathcal O_{v_L} \cap \mathcal O_{v_R} = \varnothing,
+\]
+the output configuration space of the parent is the Cartesian product of the two child spaces. At the factor level, this corresponds to an outer-product combination, equivalently a Kronecker product,
+\[
+A_{\mathrm{mat}} = A_{v_L} \otimes A_{v_R},
+\]
+whose intermediate column count is $r_{v_L} r_{v_R}$.
+
+\paragraph{(ii) Contract cut labels and keep boundary labels.}
+Let $\mathcal B_v$ denote the boundary labels retained by the parent and $\mathcal C_v$ the cut labels eliminated at the merge. The uncompressed boundary-side factor of the parent can be viewed as a contraction of the child boundary factors along $\mathcal C_v$:
+\[
+B_{\mathrm{mat}} = B_{v_L} \times_{\mathcal C_v} B_{v_R}.
+\]
+Intuitively, this step eliminates the internal edges that should disappear at the current merge while preserving the labels that must remain visible to the parent.
+
+\paragraph{(iii) Recompress.}
+After the first two steps, the parent obtains an uncompressed representation
+\[
+\widetilde M_v = A_{\mathrm{mat}} B_{\mathrm{mat}}^\top.
+\]
+Because the intermediate rank has already expanded to $r_{v_L}r_{v_R}$, immediate recompression is necessary to prevent exponential rank growth along the tree. We therefore compress $\widetilde M_v$ back into the canonical separator-state form
+\[
+M_v \approx A_v B_v^\top.
+\]
+
+\subsection{Adaptive rank selection}
+
+Recompression is required after every leaf construction and every internal merge. The simplest strategy is to use a fixed rank budget $r$ for all nodes, but this implicitly assumes that separator states across the entire tree have comparable difficulty. In practice this assumption is rarely valid. Different nodes can have very different subtree sizes, boundary structures, local degrees of freedom under the current block, and spectral decay patterns. A uniform rank therefore tends to over-allocate easy nodes and under-allocate difficult ones.
+
+We instead select the rank adaptively from a local error tolerance. Let
+\[
+M \in \RR^{m \times n}
+\]
+be a matrix to compress, with singular value decomposition
+\[
+M = U \Sigma V^\top,
+\qquad
+\Sigma = \mathrm{diag}(\sigma_1,\sigma_2,\ldots).
+\]
+For its rank-$r$ truncation
+\[
+M_r = U_r \Sigma_r V_r^\top,
+\]
+the relative Frobenius error is
+\[
+\frac{\norm{M-M_r}_F}{\norm{M}_F}
+=
+\left(
+\frac{\sum_{i>r}\sigma_i^2}{\sum_i \sigma_i^2}
+\right)^{1/2}.
+\]
+Given a tolerance $\tau$, we choose the smallest $r$ such that
+\[
+\left(
+\frac{\sum_{i>r}\sigma_i^2}{\sum_i \sigma_i^2}
+\right)^{1/2}
+\le \tau.
+\]
+In implementation, leaf nodes and merge nodes may use different tolerances, denoted by $\tau_{\mathrm{leaf}}$ and $\tau_{\mathrm{merge}}$.
+
+This formulation converts ``how many channels to keep'' into ``how much relative energy may be discarded.'' Easy nodes with rapidly decaying spectra naturally stop at low rank, while difficult nodes retain more channels when necessary. The key advantage of adaptive rank selection is therefore not a larger average rank, but a better redistribution of rank budget according to local difficulty.
+
+\subsection{Implicit sketch-based merging}
+
+Adaptive rank selection alone does not remove the most important merge bottleneck. If the two children of an internal node have ranks $r_L$ and $r_R$, then the merged interface naturally exhibits an intermediate rank product $r_Lr_R$ before recompression. Explicitly constructing the large merged interface and then compressing it incurs the classic ``inflate first, compress later'' penalty. To avoid this, we introduce implicit sketch-based merging: instead of forming the full merged interface, we recover its dominant subspace via operator access~\cite{halko2011finding,heddes2026approximating}.
+
+Let
+\[
+\widetilde M \in \RR^{m \times n}
+\]
+be the interface to compress after merging. In the explicit path,
+\[
+\widetilde M = A_{\mathrm{mat}} B_{\mathrm{mat}}^\top,
+\]
+where $A_{\mathrm{mat}}$ comes from the output-side combination and $B_{\mathrm{mat}}$ from the contraction of boundary-side factors along the cut labels. Randomized compression does not require every entry of $\widetilde M$; it only needs access to the linear maps
+\[
+x \mapsto \widetilde M x,
+\qquad
+y \mapsto \widetilde M^\top y.
+\]
+Under our merge structure, these products can be evaluated as
+\[
+\widetilde M x = A_{\mathrm{mat}} (B_{\mathrm{mat}}^\top x),
+\qquad
+\widetilde M^\top y = B_{\mathrm{mat}} (A_{\mathrm{mat}}^\top y),
+\]
+which allows the entire compression step to be carried out through operator application without explicitly materializing $\widetilde M$.
+
+We then apply a standard randomized SVD pipeline~\cite{halko2011finding}. Draw a Gaussian test matrix
+\[
+\Omega \in \RR^{n \times \ell},
+\qquad
+\Omega_{ij}\sim\mathcal N(0,1),
+\]
+where $\ell=k+p$, with target rank estimate $k$ and oversampling parameter $p$. Form the sample matrix
+\[
+Y_0 = \widetilde M \Omega
+\]
+through operator application. When spectral decay is slow, we optionally perform $q$ power iterations:
+\[
+Y_{t+1} = \widetilde M(\widetilde M^\top Y_t),
+\qquad
+t=0,1,\ldots,q-1.
+\]
+After orthogonalization,
+\[
+Q = \mathrm{orth}(Y_q) \in \RR^{m \times \ell}
+\]
+approximates the dominant column space of $\widetilde M$. We then project to a smaller matrix
+\[
+M_{\mathrm{proj}} = Q^\top \widetilde M \in \RR^{\ell \times n},
+\]
+compute its exact SVD,
+\[
+M_{\mathrm{proj}} = \widetilde U \Sigma V^\top,
+\]
+and apply the same adaptive tail-energy rule to choose the retained rank $r$. Writing the truncated approximation as
+\[
+\widetilde M \approx Q\widetilde U_r \Sigma_r V_r^\top,
+\]
+we convert it back to our factorized separator-state form via
+\[
+A = (Q\widetilde U_r)\Sigma_r^{1/2},
+\qquad
+B = V_r \Sigma_r^{1/2},
+\]
+so that
+\[
+\widetilde M \approx AB^\top.
+\]
+Adaptive rank selection determines how many channels to keep, while randomized sketching determines how to find those channels without explicitly constructing the inflated merge interface.
+
+\subsection{Algorithm summary}
+
+\Cref{alg:astnc} summarizes the full pipeline. Output blocking organizes the dense-materialization workflow, the partition tree rewrites contraction on a general graph into recursive binary merges, separator states propagate local information upward, and recompression controls intermediate-state growth.
+
+\begin{algorithm}[t]
+\caption{Full-materialization pipeline of \method{}}
+\label{alg:astnc}
+\begin{algorithmic}[1]
+\Require Tensor network $\mathcal N$, output blocks $\{\Omega_b\}_{b=1}^B$, compression configuration $\theta$
+\Ensure Full output tensor $X$
+
+\State Construct a partition tree $\mathcal T$ on the interaction graph of $\mathcal N$
+\State Initialize output buffer $X$
+\State Initialize state cache $\mathcal C$
+
+\For{each output block $\Omega_b$}
+    \State $S_{\mathrm{root}} \gets \textsc{BuildState}(\mathrm{root}(\mathcal T), \Omega_b, \theta, \mathcal C)$
+    \State $X[\Omega_b] \gets \textsc{ReadoutRoot}(S_{\mathrm{root}})$
+\EndFor
+\State \Return $X$
+
+\vspace{0.4em}
+\Function{BuildState}{$v, \Omega_b, \theta, \mathcal C$}
+    \If{the state for $(v,\Omega_b,\theta)$ is reusable from cache}
+        \State \Return cached state
+    \EndIf
+    \If{$v$ is a leaf}
+        \State Form local tensor $T_v$ under block $\Omega_b$
+        \State Build separator state $M_v$ on $(\mathcal O_v,\mathcal B_v)$
+        \State Compress $M_v$ if requested
+        \State Cache and return the state
+    \Else
+        \State $S_L \gets \textsc{BuildState}(v_L,\Omega_b,\theta,\mathcal C)$
+        \State $S_R \gets \textsc{BuildState}(v_R,\Omega_b,\theta,\mathcal C)$
+        \State Merge the output-side factors of $S_L$ and $S_R$
+        \State Contract boundary-side factors along $\mathcal C_v$
+        \State Recompress the merged separator state
+        \State Cache and return the state
+    \EndIf
+\EndFunction
+
+\vspace{0.4em}
+\Function{ReadoutRoot}{$S_{\mathrm{root}}$}
+    \State Contract the last rank dimension of the root state
+    \State \Return dense output block for $\Omega_b$
+\EndFunction
+\end{algorithmic}
+\end{algorithm}
