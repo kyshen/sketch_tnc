@@ -102,3 +102,66 @@ T_{\mathrm{total}}=T_{\mathrm{contract}}+T_{\mathrm{emit}},
 \mathrm{speedup}=T_{\mathrm{exact\text{-}TNC}}/T_{\mathrm{method}},
 \]
 并在多个随机种子（$\{0,1,2\}$）上汇总，从而降低单次运行抖动对结论的影响。
+
+\subsection{补充实验结果与机制证据}
+\label{app:extra-exp}
+
+本节补充正文未展开的两个问题：第一，论文正文中的默认 \method{} 配置在 Grid $3\times 3$ 上到底对应什么；第二，隐式草图合并、输出分块与缓存复用分别带来了什么样的内部行为差异。
+
+\paragraph{正文默认配置的精确定义。}
+在补强实验中，正文所引用的 Grid $3\times 3$ 默认配置对应同一批 core runs：方法为 \textsf{ASTNC-L2}，启用输出分块，取 \texttt{block\_labels=2}、\texttt{chunk\_size=1}，同时启用隐式草图合并与块间缓存复用。
+该配置在三个随机种子上的平均结果为：相对误差 $4.08\times 10^{-3}$，收缩时间 $0.5340$ 秒，总时间 $0.5342$ 秒，相对 exact-TNC 的加速为 $88.45\times$，缓存命中率为 $0.440$。
+因此，正文中的主结果表、机制表以及附录中的 blockwise / cache 证据都以这一默认配置为统一参照。
+
+\paragraph{内部机制证据。}
+\Cref{tab:app-mech-internal} 给出了 Grid $3\times 3$ 上更细粒度的内部机制比较。
+可以看到，去掉隐式草图合并后，误差几乎不变，但总时间从 $0.5342$ 秒上升到 $1.1792$ 秒，约恶化为 $2.21\times$；同时隐式草图合并次数由 $13.67$ 下降到 $0$，说明隐式草图合并确实承担了主要的加速作用。
+去掉缓存后，误差仍基本不变，但总时间增至 $0.6566$ 秒，表明缓存复用带来了稳定的额外系统收益。
+相比之下，去掉输出分块后，总时间略降到 $0.5265$ 秒，但误差升高到 $1.06\times 10^{-2}$，同时峰值秩从 $64$ 增至 $222$。
+这说明在当前小规模设定下，输出分块的价值并不简单体现为单调加速，而是体现在更优的精度--效率折中与更受控的内部状态规模上。
+
+\begin{table*}[t]
+\centering
+\small
+\caption{Grid $3\times 3$ 上的内部机制证据。正文默认配置对应 \texttt{block\_labels=2}、\texttt{chunk\_size=1}、cache on、implicit sketch on。}
+\label{tab:app-mech-internal}
+\begin{tabular}{lcccccccc}
+\toprule
+Setting & rel. error & contract time (s) & total time (s) & $t_{\mathrm{contract}}/t_{\mathrm{total}}$ & peak rank & \# implicit sketches & cache hit rate & \# cached states \\
+\midrule
+ASTNC default & 4.08$\times 10^{-3}$ & 0.5340 & 0.5342 & 0.9997 & 64 & 13.67 & 0.440 & 79 \\
+no-blockwise & 1.06$\times 10^{-2}$ & 0.5265 & 0.5265 & 0.9999 & 222 & 4.00 & 0 & 17 \\
+no-implicit & 4.08$\times 10^{-3}$ & 1.1790 & 1.1792 & 0.9999 & 64 & 0 & 0.440 & 79 \\
+no-cache & 4.08$\times 10^{-3}$ & 0.6561 & 0.6566 & 0.9992 & 64 & 13.67 & 0 & 0 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\paragraph{输出分块与缓存复用的补充观察。}
+为了进一步理解默认配置为何选择 $b2\_c1$（即 \texttt{block\_labels=2}、\texttt{chunk\_size=1}），我们在 Grid $3\times 3$ 上做了局部 blockwise 扫描，结果如 \Cref{tab:app-blockwise-cache} 所示。
+一方面，更保守的 $b1\_c1$ 虽然几乎达到精确误差，但总时间达到 $2.3536$ 秒，明显慢于默认配置；另一方面，$b2\_c2$ 在误差上略优于默认配置（$3.82\times 10^{-3}$ vs.\ $4.08\times 10^{-3}$），但总时间增加到 $0.5825$ 秒，且峰值秩升至 $107.67$。
+因此，默认的 $b2\_c1$ 并不是任意选取，而是在当前候选项中提供了更均衡的工作点。
+
+在缓存复用方面，默认配置 $b2\_c1$ 的缓存命中率为 $0.440$，缓存开启时总时间为 $0.5342$ 秒，关闭缓存后增至 $0.6566$ 秒，而误差保持不变。
+对 $b2\_c2$ 也可观察到同样趋势：缓存开启时总时间为 $0.5825$ 秒，关闭后为 $0.6095$ 秒。
+这说明局部块键与状态缓存不仅在默认设置下有效，而且在相邻分块策略下也能带来一致的系统收益。
+
+\begin{table*}[t]
+\centering
+\small
+\caption{Grid $3\times 3$ 上的输出分块与缓存复用补充证据。$b2\_c1$ 为正文默认配置。}
+\label{tab:app-blockwise-cache}
+\begin{tabular}{lccccccc}
+\toprule
+Setting & rel. error & total time (s) & speedup vs. exact & cache hit rate & \# cached states & mean rank & peak rank \\
+\midrule
+$b1\_c1$ & $<10^{-12}$ & 2.3536 & 20.07$\times$ & 0.314 & 35 & 1.0 & 81 \\
+$b2\_c1$ (paper default) & 4.08$\times 10^{-3}$ & 0.5342 & 88.45$\times$ & 0.440 & 79 & 1.0 & 64 \\
+$b2\_c2$ & 3.82$\times 10^{-3}$ & 0.5825 & 81.12$\times$ & 0.359 & 41 & 1.0 & 107.67 \\
+$b3\_c1$ & 5.59$\times 10^{-3}$ & 1.3057 & 36.19$\times$ & 0.494 & 135 & 1.0 & 64 \\
+\midrule
+$b2\_c1$, cache off & 4.08$\times 10^{-3}$ & 0.6566 & 71.96$\times$ & 0 & 0 & 1.0 & 64 \\
+$b2\_c2$, cache off & 3.82$\times 10^{-3}$ & 0.6095 & 77.51$\times$ & 0 & 0 & 1.0 & 107.67 \\
+\bottomrule
+\end{tabular}
+\end{table*}
