@@ -7,6 +7,7 @@ from pathlib import Path
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib import ticker
 from matplotlib.colors import LinearSegmentedColormap, Normalize
 from matplotlib.lines import Line2D
 
@@ -103,17 +104,25 @@ def is_non_dominated(points: list[dict[str, float]], idx: int) -> bool:
 
 def make_pareto_frontier() -> None:
     rows = read_csv(CSV_DIR / "pareto_sweep.csv")
-    rows = [row for row in rows if row["case"] in {"Grid 3x3", "Ring-8"} and row["status"] == "ok"]
+    case_aliases = {
+        "Grid 3x3": "Grid 3x3",
+        "Random-8": "Random-8",
+        "Ring-8": "Random-8",
+    }
+    rows = [row for row in rows if row["case"] in case_aliases and row["status"] == "ok"]
     case_styles = {
         "Grid 3x3": {"color": PALETTE["blue"], "marker": "o", "linestyle": "-"},
-        "Ring-8": {"color": PALETTE["slate"], "marker": "s", "linestyle": "--"},
+        "Random-8": {"color": PALETTE["slate"], "marker": "s", "linestyle": "--"},
     }
 
-    fig, ax = plt.subplots(figsize=(6.2, 3.3))
-    for case_name in ("Grid 3x3", "Ring-8"):
+    fig, ax = plt.subplots(figsize=(5.7, 3.05))
+    ax.set_axisbelow(True)
+    ax.yaxis.grid(True, color=PALETTE["light"], linewidth=0.6, alpha=0.55)
+    for case_name in ("Grid 3x3", "Random-8"):
         case_rows = []
         for row in rows:
-            if row["case"] != case_name:
+            display_case = case_aliases[row["case"]]
+            if display_case != case_name:
                 continue
             case_rows.append(
                 {
@@ -132,16 +141,17 @@ def make_pareto_frontier() -> None:
             [point["speedup_vs_exact"] for point in case_rows],
             s=24,
             marker=style["marker"],
-            color=style["color"],
-            alpha=0.28,
-            linewidths=0,
+            facecolors="white",
+            edgecolors=style["color"],
+            alpha=0.33,
+            linewidths=0.85,
             zorder=1,
         )
         ax.plot(
             [point["rel_error"] for point in frontier],
             [point["speedup_vs_exact"] for point in frontier],
             color=style["color"],
-            linewidth=1.4,
+            linewidth=1.55,
             linestyle=style["linestyle"],
             zorder=2,
         )
@@ -152,43 +162,28 @@ def make_pareto_frontier() -> None:
             marker=style["marker"],
             facecolor=style["color"],
             edgecolor="white",
-            linewidth=0.55,
+            linewidth=0.6,
             zorder=3,
         )
-
-        if frontier:
-            for point in (frontier[0], frontier[-1]):
-                ax.annotate(
-                    point["sweep_id"],
-                    (point["rel_error"], point["speedup_vs_exact"]),
-                    xytext=(5, 4),
-                    textcoords="offset points",
-                    fontsize=7,
-                    color=style["color"],
-                )
 
     ax.set_xscale("log")
     ax.set_xlabel("Relative error")
     ax.set_ylabel("Speedup vs. exact")
-    ax.set_xlim(1e-15, 7e-2)
-    ax.set_ylim(10, 110)
+    ax.set_xlim(2e-15, 6e-2)
+    ax.set_ylim(12, 104)
+    ax.xaxis.set_major_locator(ticker.LogLocator(base=10.0, numticks=6))
+    ax.xaxis.set_minor_locator(ticker.NullLocator())
+    ax.tick_params(axis="x", pad=2)
     ax.legend(
         handles=[
-            Line2D([0], [0], color=PALETTE["blue"], marker="o", linestyle="-", markersize=4, label="Grid 3x3"),
-            Line2D([0], [0], color=PALETTE["slate"], marker="s", linestyle="--", markersize=4, label="Ring-8"),
+            Line2D([0], [0], color=PALETTE["blue"], marker="o", markerfacecolor=PALETTE["blue"], markeredgecolor="white", linewidth=1.55, linestyle="-", markersize=5, label="Grid 3x3 frontier"),
+            Line2D([0], [0], color=PALETTE["slate"], marker="s", markerfacecolor=PALETTE["slate"], markeredgecolor="white", linewidth=1.55, linestyle="--", markersize=5, label="Random-8 frontier"),
+            Line2D([0], [0], color=PALETTE["slate"], marker="o", markerfacecolor="white", markeredgecolor=PALETTE["slate"], linewidth=0, markersize=4.7, alpha=0.6, label="Dominated points"),
         ],
-        loc="lower right",
+        loc="upper right",
         frameon=False,
-    )
-    ax.text(
-        0.02,
-        0.96,
-        "Filled markers indicate non-dominated operating points.",
-        transform=ax.transAxes,
-        ha="left",
-        va="top",
-        fontsize=7,
-        color=PALETTE["slate"],
+        handlelength=2.2,
+        labelspacing=0.45,
     )
     fig.tight_layout()
     save_figure(fig, "fig_pareto_frontier")
@@ -317,70 +312,119 @@ def make_blockwise_operating_points() -> None:
             }
         )
 
-    sizes = scale_sizes([point["rank"] for point in points])
-    fig, ax = plt.subplots(figsize=(5.6, 3.5))
+    point_by_label = {point["label"]: point for point in points}
+    main_labels = ["block_disabled", "b2_c2", "b2_c1", "b3_c1"]
+    inset_labels = ["b1_c1"]
+    all_ranks = [point["rank"] for point in points]
+    size_map = {point["label"]: size for point, size in zip(points, scale_sizes(all_ranks, 72.0, 240.0), strict=True)}
+
+    fig, ax = plt.subplots(figsize=(5.95, 3.45))
+    ax.set_axisbelow(True)
+    ax.yaxis.grid(True, color=PALETTE["light"], linewidth=0.6, alpha=0.6)
+    norm = Normalize(vmin=0.0, vmax=0.5)
+
     scatter = ax.scatter(
-        [point["time"] for point in points],
-        [point["error"] for point in points],
-        s=sizes,
-        c=[point["cache"] for point in points],
+        [point_by_label[label]["time"] for label in main_labels],
+        [point_by_label[label]["error"] for label in main_labels],
+        s=[size_map[label] for label in main_labels],
+        c=[point_by_label[label]["cache"] for label in main_labels],
         cmap=SCATTER_CMAP,
-        norm=Normalize(vmin=0.0, vmax=0.5),
+        norm=norm,
         edgecolors="white",
-        linewidths=0.75,
+        linewidths=0.8,
         zorder=3,
     )
 
-    for point in points:
-        if point["label"] == "b2_c1":
-            ax.scatter(
-                [point["time"]],
-                [point["error"]],
-                s=scale_sizes([point["rank"]], 280, 280),
-                facecolors="none",
-                edgecolors=PALETTE["ink"],
-                linewidths=1.0,
-                zorder=4,
-            )
-            ax.annotate(
-                "b2_c1 (paper default)",
-                (point["time"], point["error"]),
-                xytext=(12, -14),
-                textcoords="offset points",
-                fontsize=7.2,
-                color=PALETTE["ink"],
-                arrowprops={"arrowstyle": "-", "lw": 0.6, "color": PALETTE["ink"]},
-            )
-        else:
-            ax.annotate(
-                point["label"],
-                (point["time"], point["error"]),
-                xytext=(5, 5),
-                textcoords="offset points",
-                fontsize=7,
-                color=PALETTE["ink"],
-            )
+    label_offsets = {
+        "block_disabled": (7, 5),
+        "b2_c2": (7, 8),
+        "b3_c1": (-28, 8),
+    }
+    for label in ("block_disabled", "b2_c2", "b3_c1"):
+        point = point_by_label[label]
+        ax.annotate(
+            label,
+            (point["time"], point["error"]),
+            xytext=label_offsets[label],
+            textcoords="offset points",
+            fontsize=7.1,
+            color=PALETTE["ink"],
+        )
+
+    default_point = point_by_label["b2_c1"]
+    ax.scatter(
+        [default_point["time"]],
+        [default_point["error"]],
+        s=size_map["b2_c1"] + 85.0,
+        facecolors="none",
+        edgecolors=PALETTE["ink"],
+        linewidths=1.0,
+        zorder=4,
+    )
+    ax.annotate(
+        "b2_c1 (paper default)",
+        (default_point["time"], default_point["error"]),
+        xytext=(10, 12),
+        textcoords="offset points",
+        fontsize=7.0,
+        color=PALETTE["ink"],
+        arrowprops={"arrowstyle": "-", "lw": 0.6, "color": PALETTE["ink"]},
+    )
 
     ax.set_xlabel("Total time (s)")
     ax.set_ylabel("Relative error")
-    ax.set_yscale("log")
-    ax.set_xlim(0.16, 0.90)
-    ax.set_ylim(1e-13, 2e-2)
+    ax.set_xlim(0.16, 0.87)
+    ax.set_ylim(0.0032, 0.0114)
+
+    inset = ax.inset_axes([0.11, 0.18, 0.24, 0.30])
+    inset.set_facecolor("#FBFCFD")
+    inset.scatter(
+        [point_by_label[label]["time"] for label in inset_labels],
+        [point_by_label[label]["error"] for label in inset_labels],
+        s=[size_map[label] for label in inset_labels],
+        c=[point_by_label[label]["cache"] for label in inset_labels],
+        cmap=SCATTER_CMAP,
+        norm=norm,
+        edgecolors="white",
+        linewidths=0.8,
+        zorder=3,
+    )
+    inset.annotate(
+        "b1_c1",
+        (point_by_label["b1_c1"]["time"], point_by_label["b1_c1"]["error"]),
+        xytext=(6, 6),
+        textcoords="offset points",
+        fontsize=6.9,
+        color=PALETTE["ink"],
+    )
+    inset.set_title("near-exact corner", fontsize=6.8, pad=2)
+    inset.set_xlim(0.175, 0.205)
+    inset.set_ylim(-2.5e-14, 6e-13)
+    inset.set_xticks([0.18, 0.20])
+    inset.set_yticks([0.0, 2e-13, 4e-13])
+    inset.yaxis.set_major_formatter(ticker.FuncFormatter(lambda value, _pos: "0" if abs(value) < 1e-16 else f"{value:.0e}"))
+    inset.tick_params(axis="both", labelsize=6.5, pad=1)
+    for spine in inset.spines.values():
+        spine.set_linewidth(0.6)
+        spine.set_edgecolor("#7A8794")
 
     size_handles = [
         plt.scatter([], [], s=size, color=PALETTE["light"], edgecolors="white", linewidths=0.75)
-        for size in scale_sizes([64.0, 222.0])
+        for size in scale_sizes([64.0, 140.0, 222.0], 72.0, 240.0)
     ]
     ax.legend(
         size_handles,
-        ["Peak rank 64", "Peak rank 222"],
+        ["64", "140", "222"],
         frameon=False,
-        loc="lower right",
-        title="Point area",
-        title_fontsize=7.5,
+        loc="upper right",
+        title="Peak rank",
+        title_fontsize=7.0,
+        borderaxespad=0.15,
+        labelspacing=0.35,
+        handletextpad=0.8,
     )
 
-    cbar = fig.colorbar(scatter, ax=ax, fraction=0.045, pad=0.025)
+    cbar = fig.colorbar(scatter, ax=ax, fraction=0.038, pad=0.018)
     cbar.set_label("Cache hit rate", rotation=90)
     ticks = [0.0, 0.25, 0.5]
     cbar.set_ticks(ticks)
@@ -460,7 +504,7 @@ def write_readme() -> None:
 - Recommended placement: main text
 - Recommended label: `fig:pareto_frontier`
 - Recommended width: `\\columnwidth`
-- Caption draft: ASTNC forms a continuous set of operating points rather than only a few discrete presets. Filled markers trace the non-dominated frontier under the aligned tolerance sweep, while lighter markers show dominated alternatives. The Grid 3x3 case is visibly more trade-off sensitive, whereas Ring-8 stays comparatively stable across the sweep.
+- Caption draft: ASTNC forms a continuous set of operating points rather than only a few discrete presets. Solid markers and connecting lines trace the non-dominated frontier, while lighter hollow markers indicate dominated sweep settings. The Grid 3x3 case exhibits a visibly broader speed-accuracy trade-off than Random-8, which remains comparatively stable across the aligned sweep.
 
 ## fig_mechanism_fingerprint_grid
 - CSV: `reproduce/csv_strengthened/mechanism_internal_ablation.csv`
@@ -474,7 +518,7 @@ def write_readme() -> None:
 - Recommended placement: appendix
 - Recommended label: `fig:blockwise_operating_points_grid`
 - Recommended width: `\\columnwidth`
-- Caption draft: The blockwise configuration induces a design space rather than a single isolated table entry. Point area encodes peak rank and color encodes cache hit rate, making it easy to see how accuracy, runtime, rank growth, and reuse co-vary. The paper default `b2_c1` sits near the middle as a balanced operating point rather than an extreme corner.
+- Caption draft: Blockwise settings define a design space rather than a single isolated table entry. In the main panel, point area encodes peak rank and color encodes cache hit rate, revealing how runtime, approximation error, rank growth, and reuse co-vary across the practical operating region. The inset separates the near-exact `b1_c1` corner so that the paper default `b2_c1` remains readable as a balanced interior operating point rather than being visually flattened by an extreme error scale.
 
 ## fig_cache_reuse_pairs_grid
 - CSV: `reproduce/csv_strengthened/cache_reuse_evidence.csv`

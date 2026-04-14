@@ -5,7 +5,7 @@
 - Recommended placement: main text
 - Recommended label: `fig:pareto_frontier`
 - Recommended width: `\columnwidth`
-- Caption draft: ASTNC forms a continuous set of operating points rather than only a few discrete presets. Filled markers trace the non-dominated frontier under the aligned tolerance sweep, while lighter markers show dominated alternatives. The Grid 3x3 case is visibly more trade-off sensitive, whereas Ring-8 stays comparatively stable across the sweep.
+- Caption draft: ASTNC forms a continuous set of operating points rather than only a few discrete presets. Solid markers and connecting lines trace the non-dominated frontier, while lighter hollow markers indicate dominated sweep settings. The Grid 3x3 case exhibits a visibly broader speed-accuracy trade-off than Random-8, which remains comparatively stable across the aligned sweep.
 
 ## fig_mechanism_fingerprint_grid
 - CSV: `reproduce/csv_strengthened/mechanism_internal_ablation.csv`
@@ -19,7 +19,7 @@
 - Recommended placement: appendix
 - Recommended label: `fig:blockwise_operating_points_grid`
 - Recommended width: `\columnwidth`
-- Caption draft: The blockwise configuration induces a design space rather than a single isolated table entry. Point area encodes peak rank and color encodes cache hit rate, making it easy to see how accuracy, runtime, rank growth, and reuse co-vary. The paper default `b2_c1` sits near the middle as a balanced operating point rather than an extreme corner.
+- Caption draft: Blockwise settings define a design space rather than a single isolated table entry. In the main panel, point area encodes peak rank and color encodes cache hit rate, revealing how runtime, approximation error, rank growth, and reuse co-vary across the practical operating region. The inset separates the near-exact `b1_c1` corner so that the paper default `b2_c1` remains readable as a balanced interior operating point rather than being visually flattened by an extreme error scale.
 
 ## fig_cache_reuse_pairs_grid
 - CSV: `reproduce/csv_strengthened/cache_reuse_evidence.csv`
