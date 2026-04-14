@@ -30,7 +30,7 @@ Summary & \na & \na & \na & avg. $=2.68\times 10^{-3}$ & gmean $=35.08\times$ \\
 \end{tabular}
 \end{table*}
 
-\subsection{阶段分解与机制分析}
+\subsection{收缩主导与机制作用}
 
 首先，我们考察端到端收益究竟来自哪里。由 \Cref{tab:stage-breakdown-core} 可见，在四个主结果网络上，默认 \method{} 配置的平均 $t_{\mathrm{contract}}/t_{\mathrm{total}}$ 达到 $0.9993$；其平均收缩加速比与总加速比分别为 $46.25\times$ 与 $46.23\times$，几乎完全一致。这说明 \method{} 的主要收益确实来自内部收缩阶段，而不是输出写回。以 Grid $3\times 3$ 为例，收缩加速为 $88.48\times$，总加速为 $88.45\times$，二者在数值上几乎重合。
 
@@ -76,9 +76,16 @@ no-cache & 4.08$\times 10^{-3}$ & 0.6566 & 1.23 & 0 \\
 \end{adjustbox}
 \end{table}
 
-进一步看，默认的分块设置并不是任意选取的。对 Grid $3\times 3$ 的 blockwise 扫描显示，$b2\_c1$ 即默认设置在当前候选项中提供了最均衡的折中：它既优于更保守但更慢的 $b1\_c1$，也优于误差略低但更慢的 $b2\_c2$。因此，正文默认配置不是简单追求某一单项指标最优，而是选择了一个在误差、时间与复用行为上更均衡的工作点。
+为了把缓存复用的收益更直观地呈现出来，我们进一步给出一张成对对照图。由 \Cref{fig:cache_reuse_pairs_grid} 可见，在对齐设置下，cache 在 $b2\_c1$（正文默认配置）与 $b2\_c2$ 两组设置上都带来稳定的降时效果；其中默认配置 $b2\_c1$ 的提升最明显。这种 paired comparison 比单独报一个命中率数字更直观，也和上面的机制表形成了互补。更完整的 blockwise 设计空间与机制指纹可视化见附录~\Cref{fig:mechanism_fingerprint_grid,fig:blockwise_operating_points_grid}。
 
-\subsection{近似强度与连续调控}
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.9\columnwidth]{figures_strengthened/fig_cache_reuse_pairs_grid.pdf}
+\caption{Grid $3\times 3$ 上 cache reuse 的成对对照。对齐设置下，开启 cache 在 $b2\_c1$（正文默认配置）和 $b2\_c2$ 上都带来稳定降时。}
+\label{fig:cache_reuse_pairs_grid}
+\end{figure}
+
+\subsection{近似强度与连续前沿}
 
 我们接着考察近似强度是否能够作为稳定的误差调控旋钮。\Cref{tab:strength-sensitivity-core} 给出了离散的三档强度扫描结果。可以看到，从 \textsf{L1} 到 \textsf{L2} 再到 \textsf{L3}，误差整体上呈现清楚的上升趋势。以 Grid $3\times 3$ 为例，相对误差从近乎机器精度上升到 $4.08\times 10^{-3}$，再增至 $1.81\times 10^{-2}$；Tree-8 上则从近乎零误差上升到 $4.81\times 10^{-3}$，再达到 $4.86\times 10^{-2}$。四个网络上的平均相对误差分别为近乎零、$3.59\times 10^{-3}$ 与 $2.37\times 10^{-2}$。这说明近似强度首先是一个有效的误差调控旋钮：更弱的近似更接近精确结果，而更强的近似则带来更大的误差。
 
@@ -103,6 +110,11 @@ Average rel. error & $<10^{-12}$ & 3.59$\times 10^{-3}$ & 2.37$\times 10^{-2}$ \
 \end{adjustbox}
 \end{table}
 
-除了离散的三档设置，我们还做了连续容忍度扫描。结果表明，\method{} 并不是只有 \textsf{L1/L2/L3} 三个孤立点，而是形成了一条可调的精度--时间前沿。以 Grid $3\times 3$ 为例，在更严格的设置下，方法可以在近乎零误差时仍保持约 $100\times$ 的加速；而随着容忍度继续放宽，误差逐渐上升到 $10^{-2}$ 量级乃至更高。Random-8 上也观察到了相同趋势：严格设置几乎保持精确，而更宽松设置则引入明显误差。需要说明的是，这条前沿并非严格单调，因此更合适的解读方式是从中选取 non-dominated operating points，而不是把它看成一条简单的单调曲线。
+除了离散的三档设置，我们还做了连续容忍度扫描。结果表明，\method{} 并不是只有 \textsf{L1/L2/L3} 三个孤立点，而是形成了一条可调的精度--时间前沿。由 \Cref{fig:pareto_frontier} 可见，Grid $3\times 3$ 呈现出更宽的速度--精度折中区域：在更严格的设置下，方法可以在近乎零误差时仍保持接近 $100\times$ 的加速；而随着容忍度继续放宽，误差逐渐上升到 $10^{-2}$ 量级。相比之下，Random-8 上的 sweep 更为稳定，说明较容易的实例并不会像 Grid $3\times 3$ 那样呈现显著的 trade-off 展开。需要说明的是，这条前沿并非严格单调，因此更合适的解读方式是从中选取 non-dominated operating points，而不是把它看成一条简单的单调曲线。
 
-最后，我们补充一个小规模难度趋势观察：\method{} 的收益并非在所有容易实例上都立刻显现。在 Grid $2\times 3$ 上，\method{} 仅达到 $0.82\times$，尚不足以超过 exact-TNC；但随着难度升至 Grid $2\times 4$ 与 Grid $3\times 3$，其加速迅速提升到 $5.86\times$ 与 $52.45\times$。这说明该方法的优势主要体现在内部收缩开始成为主导瓶颈的区域，而不是所有极小规模实例上都无条件优于精确方法。
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures_strengthened/fig_pareto_frontier.pdf}
+\caption{连续容忍度扫描得到的精度--时间前沿。实心标记与连线对应 non-dominated frontier，浅色空心点对应被支配的 sweep setting。Grid $3\times 3$ 表现出更宽的 trade-off 区域，而 Random-8 更为稳定。}
+\label{fig:pareto_frontier}
+\end{figure}
