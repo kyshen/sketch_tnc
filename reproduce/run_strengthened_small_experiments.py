@@ -207,6 +207,12 @@ CACHE_REUSE_SETTINGS: list[dict[str, Any]] = [
     {"setting_id": "b2_c2", "block_enabled": True, "block_labels": 2, "chunk_size": 2},
 ]
 
+PAPER_DEFAULT_CASE_ID = "main_grid2d_3x3"
+PAPER_DEFAULT_METHOD_KEY = "astnc_l2"
+PAPER_DEFAULT_BLOCK_SETTING = {"setting_id": "b2_c1", "block_enabled": True, "block_labels": 2, "chunk_size": 1}
+PAPER_DEFAULT_GROUP = "paper_strengthened"
+PAPER_DEFAULT_RUN_NAME_PATTERN = "main_grid2d_3x3__astnc_l2__s{seed}"
+
 MAIN_CASES = [
     CaseSpec(
         case_id="main_ring_8",
@@ -701,6 +707,14 @@ def _ok(rows: list[dict[str, Any]], *, case_id: str | None = None, method_key: s
     return out
 
 
+def _paper_default_rows(rows: list[dict[str, Any]], case_id: str) -> list[dict[str, Any]]:
+    return _ok(rows, case_id=case_id, method_key=PAPER_DEFAULT_METHOD_KEY, tag="core")
+
+
+def _paper_default_grid_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    return _paper_default_rows(rows, PAPER_DEFAULT_CASE_ID)
+
+
 def _build_main_results(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     ast_errors: list[float | None] = []
@@ -709,7 +723,7 @@ def _build_main_results(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     for case in MAIN_CASES:
         exact_rows = _ok(rows, case_id=case.case_id, method_key="exact")
         fixed_rows = _ok(rows, case_id=case.case_id, method_key="fixed_rank")
-        ast_rows = _ok(rows, case_id=case.case_id, method_key="astnc_l2")
+        ast_rows = _paper_default_rows(rows, case.case_id)
 
         exact_time = _avg([_to_float(r.get("total_time_sec")) for r in exact_rows])
         fixed_time = _avg([_to_float(r.get("total_time_sec")) for r in fixed_rows])
@@ -749,7 +763,7 @@ def _build_stage_breakdown(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     for case in MAIN_CASES:
         exact_rows = _ok(rows, case_id=case.case_id, method_key="exact")
-        ast_rows = _ok(rows, case_id=case.case_id, method_key="astnc_l2")
+        ast_rows = _paper_default_rows(rows, case.case_id)
         exact_contract = _avg([_to_float(r.get("contract_time_sec")) for r in exact_rows])
         exact_total = _avg([_to_float(r.get("total_time_sec")) for r in exact_rows])
         ast_contract = _avg([_to_float(r.get("contract_time_sec")) for r in ast_rows])
@@ -781,7 +795,7 @@ def _build_stage_breakdown(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 def _build_mechanism_ablation(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     case_id = "main_grid2d_3x3"
-    default_rows = _ok(rows, case_id=case_id, method_key="astnc_l2")
+    default_rows = _paper_default_grid_rows(rows)
     default_total = _avg([_to_float(r.get("total_time_sec")) for r in default_rows])
     method_order = ["astnc_l2", "no_blockwise", "no_implicit"]
     label_map = {
@@ -791,7 +805,10 @@ def _build_mechanism_ablation(rows: list[dict[str, Any]]) -> list[dict[str, Any]
     }
     out: list[dict[str, Any]] = []
     for method_key in method_order:
-        method_rows = _ok(rows, case_id=case_id, method_key=method_key)
+        if method_key == PAPER_DEFAULT_METHOD_KEY:
+            method_rows = default_rows
+        else:
+            method_rows = _ok(rows, case_id=case_id, method_key=method_key, tag="mechanism")
         total_time = _avg([_to_float(r.get("total_time_sec")) for r in method_rows])
         out.append(
             {
@@ -808,11 +825,12 @@ def _build_mechanism_ablation(rows: list[dict[str, Any]]) -> list[dict[str, Any]
 def _build_strength_sensitivity(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     for case in MAIN_CASES:
+        l2_rows = _paper_default_rows(rows, case.case_id)
         out.append(
             {
                 "case": case.display_name,
                 "l1_rel_error": _avg([_to_float(r.get("rel_error")) for r in _ok(rows, case_id=case.case_id, method_key="astnc_l1")]),
-                "l2_rel_error": _avg([_to_float(r.get("rel_error")) for r in _ok(rows, case_id=case.case_id, method_key="astnc_l2")]),
+                "l2_rel_error": _avg([_to_float(r.get("rel_error")) for r in l2_rows]),
                 "l3_rel_error": _avg([_to_float(r.get("rel_error")) for r in _ok(rows, case_id=case.case_id, method_key="astnc_l3")]),
             }
         )
@@ -864,22 +882,33 @@ def _build_blockwise_sensitivity(rows: list[dict[str, Any]]) -> list[dict[str, A
     for case in MAIN_CASES:
         if case.case_id not in BLOCKWISE_CASE_IDS:
             continue
+        exact_total = _avg([_to_float(r.get("total_time_sec")) for r in _ok(rows, case_id=case.case_id, method_key="exact")])
         for setting in BLOCKWISE_SETTINGS:
-            setting_rows = [
-                row
-                for row in rows
-                if row.get("status") == "ok"
-                and row.get("case_id") == case.case_id
-                and row.get("tag") == "blockwise"
-                and _to_bool(row.get("block_enabled")) == setting["block_enabled"]
-                and _to_int(row.get("block_labels")) == setting["block_labels"]
-                and _to_int(row.get("chunk_size")) == setting["chunk_size"]
-            ]
+            is_paper_default = (
+                case.case_id == PAPER_DEFAULT_CASE_ID
+                and setting["setting_id"] == PAPER_DEFAULT_BLOCK_SETTING["setting_id"]
+            )
+            if is_paper_default:
+                setting_rows = _paper_default_grid_rows(rows)
+            else:
+                setting_rows = [
+                    row
+                    for row in rows
+                    if row.get("status") == "ok"
+                    and row.get("case_id") == case.case_id
+                    and row.get("tag") == "blockwise"
+                    and _to_bool(row.get("block_enabled")) == setting["block_enabled"]
+                    and _to_int(row.get("block_labels")) == setting["block_labels"]
+                    and _to_int(row.get("chunk_size")) == setting["chunk_size"]
+                ]
             if not setting_rows:
                 continue
             out.append(
                 {
                     "case": case.display_name,
+                    "setting_id": setting["setting_id"],
+                    "is_paper_default": is_paper_default,
+                    "source_tag": "core" if is_paper_default else "blockwise",
                     "block_enabled": setting["block_enabled"],
                     "block_labels": setting["block_labels"],
                     "chunk_size": setting["chunk_size"],
@@ -888,7 +917,7 @@ def _build_blockwise_sensitivity(rows: list[dict[str, Any]]) -> list[dict[str, A
                     "emit_time_sec": _avg([_to_float(r.get("emit_time_sec")) for r in setting_rows]),
                     "total_time_sec": _avg([_to_float(r.get("total_time_sec")) for r in setting_rows]),
                     "t_contract_ratio": _avg([_to_float(r.get("t_contract_ratio")) for r in setting_rows]),
-                    "speedup_vs_exact": _avg([_to_float(r.get("speedup_vs_exact")) for r in setting_rows]),
+                    "speedup_vs_exact": _safe_div(exact_total, _avg([_to_float(r.get("total_time_sec")) for r in setting_rows])),
                     "cache_hit_rate": _avg([_to_float(r.get("cache_hit_rate")) for r in setting_rows]),
                     "num_cached_states": _avg([_to_float(r.get("num_cached_states")) for r in setting_rows]),
                     "mean_rank": _avg([_to_float(r.get("mean_rank")) for r in setting_rows]),
@@ -909,7 +938,10 @@ def _build_mechanism_internal_ablation(rows: list[dict[str, Any]]) -> list[dict[
     }
     out: list[dict[str, Any]] = []
     for method_key in method_order:
-        method_rows = _ok(rows, case_id=case_id, method_key=method_key)
+        if method_key == PAPER_DEFAULT_METHOD_KEY:
+            method_rows = _paper_default_grid_rows(rows)
+        else:
+            method_rows = _ok(rows, case_id=case_id, method_key=method_key, tag="mechanism")
         if not method_rows:
             continue
         out.append(
@@ -939,7 +971,10 @@ def _build_difficulty_trend(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     for setting in DIFFICULTY_TREND_SETTINGS:
         case_id = setting["case_id"]
         exact_rows = _ok(rows, case_id=case_id, method_key="exact")
-        ast_rows = _ok(rows, case_id=case_id, method_key="astnc_l2")
+        if case_id == PAPER_DEFAULT_CASE_ID:
+            ast_rows = _paper_default_grid_rows(rows)
+        else:
+            ast_rows = _ok(rows, case_id=case_id, method_key="astnc_l2", tag="difficulty")
         if not exact_rows or not ast_rows:
             continue
         exact_total = _avg([_to_float(r.get("total_time_sec")) for r in exact_rows])
@@ -965,23 +1000,42 @@ def _build_difficulty_trend(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
 def _build_cache_reuse_evidence(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
+    exact_total = _avg([_to_float(r.get("total_time_sec")) for r in _ok(rows, case_id=PAPER_DEFAULT_CASE_ID, method_key="exact")])
     for setting in CACHE_REUSE_SETTINGS:
         for cache_enabled in [True, False]:
-            setting_rows = [
-                row
-                for row in rows
-                if row.get("status") == "ok"
-                and row.get("case_id") == "main_grid2d_3x3"
-                and row.get("tag") == "cache_reuse"
-                and row.get("setting_id") == setting["setting_id"]
-                and row.get("cache_enabled_requested") == cache_enabled
-            ]
+            is_paper_default = setting["setting_id"] == PAPER_DEFAULT_BLOCK_SETTING["setting_id"]
+            if is_paper_default and cache_enabled:
+                setting_rows = _paper_default_grid_rows(rows)
+                source_tag = "core"
+                source_run_name_pattern = PAPER_DEFAULT_RUN_NAME_PATTERN
+            elif is_paper_default and not cache_enabled:
+                setting_rows = _ok(rows, case_id=PAPER_DEFAULT_CASE_ID, method_key="no_cache", tag="mechanism")
+                source_tag = "mechanism"
+                source_run_name_pattern = "main_grid2d_3x3__no_cache__s{seed}"
+            else:
+                setting_rows = [
+                    row
+                    for row in rows
+                    if row.get("status") == "ok"
+                    and row.get("case_id") == PAPER_DEFAULT_CASE_ID
+                    and row.get("tag") == "cache_reuse"
+                    and row.get("setting_id") == setting["setting_id"]
+                    and row.get("cache_enabled_requested") == cache_enabled
+                ]
+                source_tag = "cache_reuse"
+                if cache_enabled:
+                    source_run_name_pattern = f"main_grid2d_3x3__block_{setting['setting_id']}__s{{seed}}"
+                else:
+                    source_run_name_pattern = f"main_grid2d_3x3__cache_off_{setting['setting_id']}__s{{seed}}"
             if not setting_rows:
                 continue
             out.append(
                 {
                     "case": "Grid 3x3",
                     "setting_id": setting["setting_id"],
+                    "is_paper_default": is_paper_default,
+                    "source_tag": source_tag,
+                    "source_run_name_pattern": source_run_name_pattern,
                     "block_enabled": setting["block_enabled"],
                     "block_labels": setting["block_labels"],
                     "chunk_size": setting["chunk_size"],
@@ -994,7 +1048,7 @@ def _build_cache_reuse_evidence(rows: list[dict[str, Any]]) -> list[dict[str, An
                     "rel_error": _avg([_to_float(r.get("rel_error")) for r in setting_rows]),
                     "contract_time_sec": _avg([_to_float(r.get("contract_time_sec")) for r in setting_rows]),
                     "total_time_sec": _avg([_to_float(r.get("total_time_sec")) for r in setting_rows]),
-                    "speedup_vs_exact": _avg([_to_float(r.get("speedup_vs_exact")) for r in setting_rows]),
+                    "speedup_vs_exact": _safe_div(exact_total, _avg([_to_float(r.get("total_time_sec")) for r in setting_rows])),
                     "t_contract_ratio": _avg([_to_float(r.get("t_contract_ratio")) for r in setting_rows]),
                     "mean_rank": _avg([_to_float(r.get("mean_rank")) for r in setting_rows]),
                     "peak_rank": _avg([_to_float(r.get("peak_rank")) for r in setting_rows]),
@@ -1053,6 +1107,7 @@ def _write_short_readme(output_dir: Path, rows: list[dict[str, Any]]) -> None:
             "- `pareto_sweep.csv`: continuous ASTNC tolerance sweep; best for a main-text Pareto figure or appendix support.",
             "- `blockwise_sensitivity.csv`: blockwise / chunk sensitivity; better suited for the appendix.",
             "- `mechanism_internal_ablation.csv`: internal mechanism evidence table; better suited for the appendix or an expanded paper table.",
+            "- Grid 3x3 paper default is the `core` ASTNC-L2 run with `block_labels=2`, `chunk_size=1`, `cache_enabled=true`, `implicit_merge_sketch=true`; sweep tables now mark whether an entry is that paper default or only a candidate setting.",
             "",
             "## Honest notes",
             *weak_notes,
@@ -1181,6 +1236,9 @@ def main() -> None:
         _build_blockwise_sensitivity(rows),
         [
             "case",
+            "setting_id",
+            "is_paper_default",
+            "source_tag",
             "block_enabled",
             "block_labels",
             "chunk_size",
@@ -1244,6 +1302,9 @@ def main() -> None:
         [
             "case",
             "setting_id",
+            "is_paper_default",
+            "source_tag",
+            "source_run_name_pattern",
             "block_enabled",
             "block_labels",
             "chunk_size",

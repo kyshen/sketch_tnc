@@ -8,6 +8,7 @@
 - `pareto_sweep.csv`: continuous ASTNC tolerance sweep; best for a main-text Pareto figure or appendix support.
 - `blockwise_sensitivity.csv`: blockwise / chunk sensitivity; better suited for the appendix.
 - `mechanism_internal_ablation.csv`: internal mechanism evidence table; better suited for the appendix or an expanded paper table.
+- Grid 3x3 paper default is the `core` ASTNC-L2 run with `block_labels=2`, `chunk_size=1`, `cache_enabled=true`, `implicit_merge_sketch=true`; sweep tables now mark whether an entry is that paper default or only a candidate setting.
 
 ## Honest notes
 - The tolerance sweep exposes multiple operating points, but speedup is not strictly monotone in tolerance, so the Pareto front should be drawn from the non-dominated points rather than read as a monotone curve.
