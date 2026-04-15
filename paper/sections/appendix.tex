@@ -3,7 +3,7 @@
 \subsection{方法细节与机制补充}
 \label{app:method-details}
 
-为了使上述方法具有可复现性，这里进一步说明划分树构造、输出分块、根节点读出、块间缓存以及精确收缩基线的具体实现机制。
+为了使上述方法具有可复现性，这里进一步说明划分树构造、输出分块在实现中的具体落地、局部块键缓存、根节点读出、精确收缩基线以及随机化压缩的可重复性设置。
 
 \paragraph{划分树构造。}
 设张量网络的交互图为 $G=(V,E,w)$，其中每个节点对应一个原始张量；若两个张量共享内部标签，则在它们之间连边。
@@ -12,15 +12,12 @@
 据此自底向上构造一棵二叉划分树。
 对于任意树节点 $v$（对应子网络 $\mathcal N_v$），其输出标签、边界标签与切割标签分别记为 $\mathcal O_v,\mathcal B_v,\mathcal C_v$。
 
-\paragraph{输出分块。}
+\paragraph{输出分块的实现落地。}
 设全局开放标签顺序为 $\mathcal O=(\ell_1,\ldots,\ell_m)$。
-实现中仅对前 $q=\texttt{block\_label\_count}$ 个开放标签做分块。
-对每个被分块标签 $\ell_i$，其索引集合被按长度 $\texttt{chunk\_size}$ 划分为若干连续片段
-\[
-I_{\ell_i}^{(1)}, I_{\ell_i}^{(2)}, \ldots .
-\]
+实现中，从开放标签顺序的前部选取若干标签作为分块轴，并将每个被分块标签的索引集合划分为等长的连续片段。
 一个输出块 $\Omega_b$ 即为这些局部片段的笛卡尔积。
-因此，分块后的输出块不只是输出写回时的调度单元，它还会直接改变各子树在当前块下的局部输出维度。
+正文默认设置对应的具体实现是：沿前两个开放输出轴做分块，且每个分块轴上的局部片段长度为 1。
+因此，正文里“沿前两个输出轴按单索引块逐块生成完整输出”的表述，在实现上对应的是一种固定的块级切片策略。
 
 \paragraph{局部块键与块间缓存。}
 对树节点 $v$ 和输出块 $\Omega_b$，我们定义其局部块键
@@ -47,13 +44,14 @@ K(v,\Omega_b)
 若根状态写为 $M_{\mathrm{root}} \approx A_{\mathrm{root}} B_{\mathrm{root}}^\top$，则当前块输出由最后一条秩维收回得到。
 
 \paragraph{精确收缩基线。}
-本文的精确收缩基线 exact-TNC 与 \method{} 共用同一张量网络对象和同一输出标签顺序。
+本文的精确收缩基线 exact-TNC 与 \method{} 共用同一张量网络对象、同一开放标签顺序以及同一组输出块。
 对每个输出块 $\Omega_b$，exact-TNC 直接调用全网络精确收缩
 \[
 X_{\Omega_b} = \mathrm{contract\_full}(\mathcal N,\Omega_b),
 \]
-其底层实现基于 \texttt{opt\_einsum} 的精确张量收缩接口，并按给定的 \texttt{optimize} 策略执行。
-因此，\method{} 与 exact-TNC 的主要差异不在输出接口，而在于 \method{} 以分隔状态递归替代了内部全量收缩过程。
+再将结果写回完整输出张量的对应位置。
+其底层实现基于 \texttt{opt\_einsum} 的精确张量收缩接口，并按给定的 \texttt{optimize} 路径策略执行。
+因此，\method{} 与 exact-TNC 的主要差异不在输出接口，而在于 \method{} 以划分树上的分隔状态递归替代了内部全量收缩过程。
 
 \paragraph{复现说明。}
 在随机化压缩中，当前实现采用由基础随机种子与状态键共同确定的确定性伪随机数生成方式。
@@ -78,6 +76,7 @@ X_{\Omega_b} = \mathrm{contract\_full}(\mathcal N,\Omega_b),
     \textsf{L3} \quad &(3.0\times10^{-3},\;1.5\times10^{-2})
 \end{aligned}
 \]
+正文中的默认 \method{} 即中等强度预设 \textsf{L2}。
 
 另外，\method{} 采用 \texttt{depth\_open} 调度：节点局部容忍度按
 \[
@@ -85,13 +84,14 @@ X_{\Omega_b} = \mathrm{contract\_full}(\mathcal N,\Omega_b),
 \]
 自适应调整。
 
-\paragraph{输出分块策略}
-主实验统一启用输出分块策略：\texttt{block\_labels=2}，\texttt{chunk\_size=1}。
-即从开放腿中选 2 个标签作为分块轴，每个轴按单元素切片，逐块收缩并写回完整输出张量。
+\paragraph{正文默认分块设置的精确定义}
+正文主实验默认采用如下块级设置：沿前两个开放输出轴逐块生成完整输出，且每个输出块在这两个轴上各只包含一个索引位置。
+在实现层面，这对应于选取前两个开放标签参与分块，并将每个被分块标签按长度为 1 的局部片段切分。
+正文不直接使用实现变量名来描述该设置，是为了把默认设定解释为一种块级计算策略，而不是一组代码开关。
 
 \paragraph{计时口径与合理性}
 本文采用同任务、同分块、分阶段的统一计时口径。
-对每个网络实例，先生成同一组输出分块，然后在该分块上分别运行 exact-TNC 与近似方法；因此不同方法面对的是相同的输出组织与写回负担。
+对每个网络实例，先生成同一组输出块，然后在该分块上分别运行 exact-TNC 与近似方法；因此不同方法面对的是相同的输出组织与写回负担。
 计时使用高精度时钟，并将每个输出块的时间拆分为收缩与写回两段并累计，最终报告
 \[
 T_{\mathrm{total}}=T_{\mathrm{contract}}+T_{\mathrm{emit}},
@@ -109,12 +109,13 @@ T_{\mathrm{total}}=T_{\mathrm{contract}}+T_{\mathrm{emit}},
 本节补充正文未完全展开的三个问题：第一，正文默认 \method{} 配置在 Grid $3\times 3$ 上到底对应什么；第二，不同机制变体的影响究竟落在哪些内部指标上；第三，输出分块为何更像是在定义一个设计空间，而不只是一个简单开关。
 
 \paragraph{正文默认配置的精确定义。}
-在补强实验中，正文所引用的 Grid $3\times 3$ 默认配置对应同一批 core runs：方法为 \textsf{ASTNC-L2}，启用输出分块，取 \texttt{block\_labels=2}、\texttt{chunk\_size=1}，同时启用隐式草图合并与块间缓存复用。
+在补强实验中，正文所引用的 Grid $3\times 3$ 默认配置对应同一批 core runs：方法为中等强度预设 \textsf{L2}，沿前两个输出轴按单索引块逐块生成完整输出，同时启用隐式草图合并与块间缓存复用。
 该配置在三个随机种子上的平均结果为：相对误差 $4.08\times 10^{-3}$，收缩时间 $0.5340$ 秒，总时间 $0.5342$ 秒，相对 exact-TNC 的加速为 $88.45\times$，缓存命中率为 $0.440$。
 因此，正文中的主结果表、机制表以及后文的 blockwise / cache 补充证据都以这一默认配置为统一参照。
 
 \paragraph{机制指纹视角。}
-仅看总时间还不足以区分不同机制到底影响了什么。\Cref{fig:mechanism_fingerprint_grid} 将 Grid $3\times 3$ 上的关键内部指标做了归一化汇总。
+仅看总时间还不足以区分不同机制到底影响了什么。
+\Cref{fig:mechanism_fingerprint_grid} 将 Grid $3\times 3$ 上的关键内部指标做了归一化汇总。
 可以看到，去掉隐式草图合并主要伤害运行时间；去掉缓存主要击穿复用相关统计并带来次级降时损失；而去掉输出分块则主要抬高误差与峰值秩。
 因此，这几个组件并不是在做同一件事，而是在分别塑造精度、运行时间与中间状态规模。
 
@@ -125,64 +126,15 @@ T_{\mathrm{total}}=T_{\mathrm{contract}}+T_{\mathrm{emit}},
 \label{fig:mechanism_fingerprint_grid}
 \end{figure}
 
-% 为了保留精确数值，\Cref{tab:app-mech-internal} 进一步给出相同实验的原始统计。
-% 可以看到，去掉隐式草图合并后，误差几乎不变，但总时间从 $0.5342$ 秒上升到 $1.1792$ 秒，约恶化为 $2.21\times$；同时隐式草图合并次数由 $13.67$ 下降到 $0$，说明隐式草图合并确实承担了主要的加速作用。
-% 去掉缓存后，误差仍基本不变，但总时间增至 $0.6566$ 秒，表明缓存复用带来了稳定的额外系统收益。
-% 相比之下，去掉输出分块后，总时间略降到 $0.5265$ 秒，但误差升高到 $1.06\times 10^{-2}$，同时峰值秩从 $64$ 增至 $222$。
-% 这说明在当前小规模设定下，输出分块的价值并不简单体现为单调加速，而是体现在更优的精度--效率折中与更受控的内部状态规模上。
-
-% \begin{table*}[t]
-% \centering
-% \small
-% \caption{Grid $3\times 3$ 上的内部机制证据。正文默认配置对应 \texttt{block\_labels=2}、\texttt{chunk\_size=1}、cache on、implicit sketch on。}
-% \label{tab:app-mech-internal}
-% \begin{tabular}{lcccccccc}
-% \toprule
-% Setting & rel. error & contract time (s) & total time (s) & $t_{\mathrm{contract}}/t_{\mathrm{total}}$ & peak rank & \# implicit sketches & cache hit rate & \# cached states \\
-% \midrule
-% ASTNC default & 4.08$\times 10^{-3}$ & 0.5340 & 0.5342 & 0.9997 & 64 & 13.67 & 0.440 & 79 \\
-% no-blockwise & 1.06$\times 10^{-2}$ & 0.5265 & 0.5265 & 0.9999 & 222 & 4.00 & 0 & 17 \\
-% no-implicit & 4.08$\times 10^{-3}$ & 1.1790 & 1.1792 & 0.9999 & 64 & 0 & 0.440 & 79 \\
-% no-cache & 4.08$\times 10^{-3}$ & 0.6561 & 0.6566 & 0.9992 & 64 & 13.67 & 0 & 0 \\
-% \bottomrule
-% \end{tabular}
-% \end{table*}
-
 \paragraph{输出分块作为设计空间。}
-为了进一步理解默认配置为何选择 $b2\_c1$（即 \texttt{block\_labels=2}、\texttt{chunk\_size=1}），我们在 Grid $3\times 3$ 上做了局部 blockwise 扫描。\Cref{fig:blockwise_operating_points_grid} 以设计空间的方式展示了这些结果：主图聚焦 practical operating region，而 near-exact 的 $b1\_c1$ 被单独放入 inset，从而避免极小误差点把整张图的误差轴压扁。
-在这样的视图下，$b2\_c1$ 的角色更清楚了：它并不是误差最低、也不是时间最短，而是在当前候选项中提供了更均衡的工作点。
-具体而言，$b1\_c1$ 虽然几乎达到精确误差，但总时间达到 $2.3536$ 秒，明显慢于默认配置；$b2\_c2$ 在误差上略优于默认配置（$3.82\times 10^{-3}$ vs.\ $4.08\times 10^{-3}$），但总时间增加到 $0.5825$ 秒，且峰值秩升至 $107.67$；而 $b3\_c1$ 则进一步牺牲精度换取另一种复用模式。
-因此，默认的 $b2\_c1$ 并不是任意选取，而是在误差、时间、峰值秩与复用行为之间做出的平衡。
+为了进一步理解默认配置为何选择“沿前两个输出轴、按单索引块逐块生成”的设置，我们在 Grid $3\times 3$ 上做了局部 blockwise 扫描。
+\Cref{fig:blockwise_operating_points_grid} 以设计空间的方式展示了这些结果：主图聚焦 practical operating region，而 near-exact 的设置被单独放入 inset，从而避免极小误差点把整张图的误差轴压扁。
+在这样的视图下，正文默认配置的角色更清楚了：它并不是误差最低、也不是时间最短，而是在当前候选项中提供了更均衡的工作点。
+因此，默认设置并不是任意选取，而是在误差、时间、峰值秩与复用行为之间做出的平衡。
 
 \begin{figure}[t]
 \centering
 \includegraphics[width=\columnwidth]{figures_strengthened/fig_blockwise_operating_points_grid.pdf}
-\caption{Grid $3\times 3$ 上的 blockwise 设计空间。主图聚焦 practical operating region，点面积编码 peak rank、颜色编码 cache hit rate；inset 单独展示 near-exact 的 $b1\_c1$，从而使默认配置 $b2\_c1$ 能以“平衡点”而非“被压扁的中间点”被读出。}
+\caption{Grid $3\times 3$ 上的 blockwise 设计空间。主图聚焦 practical operating region，点面积编码 peak rank、颜色编码 cache hit rate；inset 单独展示 near-exact 设置，从而使正文默认配置能以“平衡点”而非“被压扁的中间点”被读出。}
 \label{fig:blockwise_operating_points_grid}
 \end{figure}
-
-% \paragraph{输出分块与缓存复用的精确数值。}
-% \Cref{tab:app-blockwise-cache} 补充给出 blockwise / cache 组合的原始数值。
-% 在缓存复用方面，默认配置 $b2\_c1$ 的缓存命中率为 $0.440$，缓存开启时总时间为 $0.5342$ 秒，关闭缓存后增至 $0.6566$ 秒，而误差保持不变。
-% 对 $b2\_c2$ 也可观察到同样趋势：缓存开启时总时间为 $0.5825$ 秒，关闭后为 $0.6095$ 秒。
-% 这说明局部块键与状态缓存不仅在默认设置下有效，而且在相邻分块策略下也能带来一致的系统收益；正文中的 paired cache figure 则提供了更直观的视觉对照。
-
-% \begin{table*}[t]
-% \centering
-% \small
-% \caption{Grid $3\times 3$ 上的输出分块与缓存复用补充证据。$b2\_c1$ 为正文默认配置。}
-% \label{tab:app-blockwise-cache}
-% \begin{tabular}{lccccccc}
-% \toprule
-% Setting & rel. error & total time (s) & speedup vs. exact & cache hit rate & \# cached states & mean rank & peak rank \\
-% \midrule
-% $b1\_c1$ & $<10^{-12}$ & 2.3536 & 20.07$\times$ & 0.314 & 35 & 1.0 & 81 \\
-% $b2\_c1$ (paper default) & 4.08$\times 10^{-3}$ & 0.5342 & 88.45$\times$ & 0.440 & 79 & 1.0 & 64 \\
-% $b2\_c2$ & 3.82$\times 10^{-3}$ & 0.5825 & 81.12$\times$ & 0.359 & 41 & 1.0 & 107.67 \\
-% $b3\_c1$ & 5.59$\times 10^{-3}$ & 1.3057 & 36.19$\times$ & 0.494 & 135 & 1.0 & 64 \\
-% \midrule
-% $b2\_c1$, cache off & 4.08$\times 10^{-3}$ & 0.6566 & 71.96$\times$ & 0 & 0 & 1.0 & 64 \\
-% $b2\_c2$, cache off & 3.82$\times 10^{-3}$ & 0.6095 & 77.51$\times$ & 0 & 0 & 1.0 & 107.67 \\
-% \bottomrule
-% \end{tabular}
-% \end{table*}
