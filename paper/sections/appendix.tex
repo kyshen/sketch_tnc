@@ -125,28 +125,28 @@ T_{\mathrm{total}}=T_{\mathrm{contract}}+T_{\mathrm{emit}},
 \label{fig:mechanism_fingerprint_grid}
 \end{figure}
 
-为了保留精确数值，\Cref{tab:app-mech-internal} 进一步给出相同实验的原始统计。
-可以看到，去掉隐式草图合并后，误差几乎不变，但总时间从 $0.5342$ 秒上升到 $1.1792$ 秒，约恶化为 $2.21\times$；同时隐式草图合并次数由 $13.67$ 下降到 $0$，说明隐式草图合并确实承担了主要的加速作用。
-去掉缓存后，误差仍基本不变，但总时间增至 $0.6566$ 秒，表明缓存复用带来了稳定的额外系统收益。
-相比之下，去掉输出分块后，总时间略降到 $0.5265$ 秒，但误差升高到 $1.06\times 10^{-2}$，同时峰值秩从 $64$ 增至 $222$。
-这说明在当前小规模设定下，输出分块的价值并不简单体现为单调加速，而是体现在更优的精度--效率折中与更受控的内部状态规模上。
+% 为了保留精确数值，\Cref{tab:app-mech-internal} 进一步给出相同实验的原始统计。
+% 可以看到，去掉隐式草图合并后，误差几乎不变，但总时间从 $0.5342$ 秒上升到 $1.1792$ 秒，约恶化为 $2.21\times$；同时隐式草图合并次数由 $13.67$ 下降到 $0$，说明隐式草图合并确实承担了主要的加速作用。
+% 去掉缓存后，误差仍基本不变，但总时间增至 $0.6566$ 秒，表明缓存复用带来了稳定的额外系统收益。
+% 相比之下，去掉输出分块后，总时间略降到 $0.5265$ 秒，但误差升高到 $1.06\times 10^{-2}$，同时峰值秩从 $64$ 增至 $222$。
+% 这说明在当前小规模设定下，输出分块的价值并不简单体现为单调加速，而是体现在更优的精度--效率折中与更受控的内部状态规模上。
 
-\begin{table*}[t]
-\centering
-\small
-\caption{Grid $3\times 3$ 上的内部机制证据。正文默认配置对应 \texttt{block\_labels=2}、\texttt{chunk\_size=1}、cache on、implicit sketch on。}
-\label{tab:app-mech-internal}
-\begin{tabular}{lcccccccc}
-\toprule
-Setting & rel. error & contract time (s) & total time (s) & $t_{\mathrm{contract}}/t_{\mathrm{total}}$ & peak rank & \# implicit sketches & cache hit rate & \# cached states \\
-\midrule
-ASTNC default & 4.08$\times 10^{-3}$ & 0.5340 & 0.5342 & 0.9997 & 64 & 13.67 & 0.440 & 79 \\
-no-blockwise & 1.06$\times 10^{-2}$ & 0.5265 & 0.5265 & 0.9999 & 222 & 4.00 & 0 & 17 \\
-no-implicit & 4.08$\times 10^{-3}$ & 1.1790 & 1.1792 & 0.9999 & 64 & 0 & 0.440 & 79 \\
-no-cache & 4.08$\times 10^{-3}$ & 0.6561 & 0.6566 & 0.9992 & 64 & 13.67 & 0 & 0 \\
-\bottomrule
-\end{tabular}
-\end{table*}
+% \begin{table*}[t]
+% \centering
+% \small
+% \caption{Grid $3\times 3$ 上的内部机制证据。正文默认配置对应 \texttt{block\_labels=2}、\texttt{chunk\_size=1}、cache on、implicit sketch on。}
+% \label{tab:app-mech-internal}
+% \begin{tabular}{lcccccccc}
+% \toprule
+% Setting & rel. error & contract time (s) & total time (s) & $t_{\mathrm{contract}}/t_{\mathrm{total}}$ & peak rank & \# implicit sketches & cache hit rate & \# cached states \\
+% \midrule
+% ASTNC default & 4.08$\times 10^{-3}$ & 0.5340 & 0.5342 & 0.9997 & 64 & 13.67 & 0.440 & 79 \\
+% no-blockwise & 1.06$\times 10^{-2}$ & 0.5265 & 0.5265 & 0.9999 & 222 & 4.00 & 0 & 17 \\
+% no-implicit & 4.08$\times 10^{-3}$ & 1.1790 & 1.1792 & 0.9999 & 64 & 0 & 0.440 & 79 \\
+% no-cache & 4.08$\times 10^{-3}$ & 0.6561 & 0.6566 & 0.9992 & 64 & 13.67 & 0 & 0 \\
+% \bottomrule
+% \end{tabular}
+% \end{table*}
 
 \paragraph{输出分块作为设计空间。}
 为了进一步理解默认配置为何选择 $b2\_c1$（即 \texttt{block\_labels=2}、\texttt{chunk\_size=1}），我们在 Grid $3\times 3$ 上做了局部 blockwise 扫描。\Cref{fig:blockwise_operating_points_grid} 以设计空间的方式展示了这些结果：主图聚焦 practical operating region，而 near-exact 的 $b1\_c1$ 被单独放入 inset，从而避免极小误差点把整张图的误差轴压扁。
@@ -161,28 +161,28 @@ no-cache & 4.08$\times 10^{-3}$ & 0.6561 & 0.6566 & 0.9992 & 64 & 13.67 & 0 & 0 
 \label{fig:blockwise_operating_points_grid}
 \end{figure}
 
-\paragraph{输出分块与缓存复用的精确数值。}
-\Cref{tab:app-blockwise-cache} 补充给出 blockwise / cache 组合的原始数值。
-在缓存复用方面，默认配置 $b2\_c1$ 的缓存命中率为 $0.440$，缓存开启时总时间为 $0.5342$ 秒，关闭缓存后增至 $0.6566$ 秒，而误差保持不变。
-对 $b2\_c2$ 也可观察到同样趋势：缓存开启时总时间为 $0.5825$ 秒，关闭后为 $0.6095$ 秒。
-这说明局部块键与状态缓存不仅在默认设置下有效，而且在相邻分块策略下也能带来一致的系统收益；正文中的 paired cache figure 则提供了更直观的视觉对照。
+% \paragraph{输出分块与缓存复用的精确数值。}
+% \Cref{tab:app-blockwise-cache} 补充给出 blockwise / cache 组合的原始数值。
+% 在缓存复用方面，默认配置 $b2\_c1$ 的缓存命中率为 $0.440$，缓存开启时总时间为 $0.5342$ 秒，关闭缓存后增至 $0.6566$ 秒，而误差保持不变。
+% 对 $b2\_c2$ 也可观察到同样趋势：缓存开启时总时间为 $0.5825$ 秒，关闭后为 $0.6095$ 秒。
+% 这说明局部块键与状态缓存不仅在默认设置下有效，而且在相邻分块策略下也能带来一致的系统收益；正文中的 paired cache figure 则提供了更直观的视觉对照。
 
-\begin{table*}[t]
-\centering
-\small
-\caption{Grid $3\times 3$ 上的输出分块与缓存复用补充证据。$b2\_c1$ 为正文默认配置。}
-\label{tab:app-blockwise-cache}
-\begin{tabular}{lccccccc}
-\toprule
-Setting & rel. error & total time (s) & speedup vs. exact & cache hit rate & \# cached states & mean rank & peak rank \\
-\midrule
-$b1\_c1$ & $<10^{-12}$ & 2.3536 & 20.07$\times$ & 0.314 & 35 & 1.0 & 81 \\
-$b2\_c1$ (paper default) & 4.08$\times 10^{-3}$ & 0.5342 & 88.45$\times$ & 0.440 & 79 & 1.0 & 64 \\
-$b2\_c2$ & 3.82$\times 10^{-3}$ & 0.5825 & 81.12$\times$ & 0.359 & 41 & 1.0 & 107.67 \\
-$b3\_c1$ & 5.59$\times 10^{-3}$ & 1.3057 & 36.19$\times$ & 0.494 & 135 & 1.0 & 64 \\
-\midrule
-$b2\_c1$, cache off & 4.08$\times 10^{-3}$ & 0.6566 & 71.96$\times$ & 0 & 0 & 1.0 & 64 \\
-$b2\_c2$, cache off & 3.82$\times 10^{-3}$ & 0.6095 & 77.51$\times$ & 0 & 0 & 1.0 & 107.67 \\
-\bottomrule
-\end{tabular}
-\end{table*}
+% \begin{table*}[t]
+% \centering
+% \small
+% \caption{Grid $3\times 3$ 上的输出分块与缓存复用补充证据。$b2\_c1$ 为正文默认配置。}
+% \label{tab:app-blockwise-cache}
+% \begin{tabular}{lccccccc}
+% \toprule
+% Setting & rel. error & total time (s) & speedup vs. exact & cache hit rate & \# cached states & mean rank & peak rank \\
+% \midrule
+% $b1\_c1$ & $<10^{-12}$ & 2.3536 & 20.07$\times$ & 0.314 & 35 & 1.0 & 81 \\
+% $b2\_c1$ (paper default) & 4.08$\times 10^{-3}$ & 0.5342 & 88.45$\times$ & 0.440 & 79 & 1.0 & 64 \\
+% $b2\_c2$ & 3.82$\times 10^{-3}$ & 0.5825 & 81.12$\times$ & 0.359 & 41 & 1.0 & 107.67 \\
+% $b3\_c1$ & 5.59$\times 10^{-3}$ & 1.3057 & 36.19$\times$ & 0.494 & 135 & 1.0 & 64 \\
+% \midrule
+% $b2\_c1$, cache off & 4.08$\times 10^{-3}$ & 0.6566 & 71.96$\times$ & 0 & 0 & 1.0 & 64 \\
+% $b2\_c2$, cache off & 3.82$\times 10^{-3}$ & 0.6095 & 77.51$\times$ & 0 & 0 & 1.0 & 107.67 \\
+% \bottomrule
+% \end{tabular}
+% \end{table*}

@@ -420,9 +420,6 @@ INPUT c:/texlive/2026/texmf-dist/fonts/tfm/public/cm/cmr9.tfm
 INPUT ./figures_strengthened/fig_cache_reuse_pairs_grid.pdf
 INPUT ./figures_strengthened/fig_cache_reuse_pairs_grid.pdf
 INPUT ./figures_strengthened/fig_cache_reuse_pairs_grid.pdf
-INPUT ./figures_strengthened/fig_pareto_frontier.pdf
-INPUT ./figures_strengthened/fig_pareto_frontier.pdf
-INPUT ./figures_strengthened/fig_pareto_frontier.pdf
 INPUT ./sections/conclusion.tex
 INPUT ./sections/conclusion.tex
 INPUT sections/conclusion.tex

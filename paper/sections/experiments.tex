@@ -110,11 +110,11 @@ Average rel. error & $<10^{-12}$ & 3.59$\times 10^{-3}$ & 2.37$\times 10^{-2}$ \
 \end{adjustbox}
 \end{table}
 
-除了离散的三档设置，我们还做了连续容忍度扫描。结果表明，\method{} 并不是只有 \textsf{L1/L2/L3} 三个孤立点，而是形成了一条可调的精度--时间前沿。由 \Cref{fig:pareto_frontier} 可见，Grid $3\times 3$ 呈现出更宽的速度--精度折中区域：在更严格的设置下，方法可以在近乎零误差时仍保持接近 $100\times$ 的加速；而随着容忍度继续放宽，误差逐渐上升到 $10^{-2}$ 量级。相比之下，Random-8 上的 sweep 更为稳定，说明较容易的实例并不会像 Grid $3\times 3$ 那样呈现显著的 trade-off 展开。需要说明的是，这条前沿并非严格单调，因此更合适的解读方式是从中选取 non-dominated operating points，而不是把它看成一条简单的单调曲线。
+% 除了离散的三档设置，我们还做了连续容忍度扫描。结果表明，\method{} 并不是只有 \textsf{L1/L2/L3} 三个孤立点，而是形成了一条可调的精度--时间前沿。由 \Cref{fig:pareto_frontier} 可见，Grid $3\times 3$ 呈现出更宽的速度--精度折中区域：在更严格的设置下，方法可以在近乎零误差时仍保持接近 $100\times$ 的加速；而随着容忍度继续放宽，误差逐渐上升到 $10^{-2}$ 量级。相比之下，Random-8 上的 sweep 更为稳定，说明较容易的实例并不会像 Grid $3\times 3$ 那样呈现显著的 trade-off 展开。需要说明的是，这条前沿并非严格单调，因此更合适的解读方式是从中选取 non-dominated operating points，而不是把它看成一条简单的单调曲线。
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=\columnwidth]{figures_strengthened/fig_pareto_frontier.pdf}
-\caption{连续容忍度扫描得到的精度--时间前沿。实心标记与连线对应 non-dominated frontier，浅色空心点对应被支配的 sweep setting。Grid $3\times 3$ 表现出更宽的 trade-off 区域，而 Random-8 更为稳定。}
-\label{fig:pareto_frontier}
-\end{figure}
+% \begin{figure}[t]
+% \centering
+% \includegraphics[width=\columnwidth]{figures_strengthened/fig_pareto_frontier.pdf}
+% \caption{连续容忍度扫描得到的精度--时间前沿。实心标记与连线对应 non-dominated frontier，浅色空心点对应被支配的 sweep setting。Grid $3\times 3$ 表现出更宽的 trade-off 区域，而 Random-8 更为稳定。}
+% \label{fig:pareto_frontier}
+% \end{figure}

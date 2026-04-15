@@ -27,3 +27,10 @@
 - Recommended label: `fig:cache_reuse_pairs_grid`
 - Recommended width: `0.9\columnwidth`
 - Caption draft: Cache reuse produces a clean paired gain under aligned settings. For both `b2_c1` and `b2_c2`, enabling cache reduces total time relative to the matched cache-off run, with the strongest absolute gain appearing at the paper default `b2_c1`. The hit-rate annotations make the reuse effect concrete without adding table-like clutter.
+
+## fig_strength_sensitivity_trend
+- CSV: `reproduce/csv_strengthened/strength_sensitivity.csv`
+- Recommended placement: main text
+- Recommended label: `fig:strength-sensitivity-trend`
+- Recommended width: `0.92\columnwidth`
+- Caption draft: Approximation strength acts as a stable error-control knob. Across all four core cases, relative error rises from \textsf{L1} to \textsf{L2} and again to \textsf{L3}; the thicker black line marks the average trend. Because the \textsf{L1} points are near machine precision, the plot uses a log-scale y-axis and displays them at a small visual floor for readability.
