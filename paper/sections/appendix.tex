@@ -19,41 +19,40 @@
 正文默认设置对应的具体实现是：沿前两个开放输出轴做分块，且每个分块轴上的局部片段长度为 1。
 
 \paragraph{局部块键与块间缓存。}
+设输出块 $\Omega_b$ 在被分块输出标签 $\ell$ 上对应的局部索引集合记为
+$ I_{b,\ell}\subseteq [d_\ell] $。在正文默认设置中，由于每个分块轴都按单索引块切分，
+故 $I_{b,\ell}$ 退化为单元素集合。
+
 对树节点 $v$ 和输出块 $\Omega_b$，我们定义其局部块键
 \[
 \kappa_v(\Omega_b)
 =
-\bigl\{
-(\ell, I_{b,\ell}) \;:\; \ell\in \mathcal O_v,\ \ell \text{ 在当前块中被切片}
-\bigr\}.
+\bigl\{(\ell, I_{b,\ell}) \;:\; \ell\in \mathcal O_v,\ \ell \text{ 参与当前输出块的分块}\bigr\}.
 \]
-也就是说，$\kappa_v(\Omega_b)$ 只保留该子树真正“看得见”的局部切片条件，而忽略与该子树无关的其他块信息。
+也就是说，$\kappa_v(\Omega_b)$ 只保留该子树真正“看得见”的局部切片条件，
+而忽略与该子树无关的其他块信息。
 于是，节点状态缓存可写为
 \[
-K(v,\Omega_b)
-=
-\bigl(\mathrm{node\_key}(v),\ \kappa_v(\Omega_b),\ \mathrm{sig}(\theta)\bigr),
+K(v,\Omega_b)=\bigl(\mathrm{node\_key}(v),\ \kappa_v(\Omega_b),\ \mathrm{sig}(\theta)\bigr),
 \]
-其中 $\mathrm{sig}(\theta)$ 表示与压缩相关的配置签名（如秩选择策略、容忍度、随机化参数和优化策略等）。
-只要两个全局输出块在节点 $v$ 上诱导出相同的 $\kappa_v(\Omega_b)$，则该节点状态即可直接复用。
+其中 $\mathrm{sig}(\theta)$ 表示与压缩相关的配置签名（如秩选择策略、容忍度、
+随机化参数和优化策略等）。只要两个全局输出块在节点 $v$ 上诱导出相同的
+$\kappa_v(\Omega_b)$，则该节点状态即可直接复用。
 
 \paragraph{根节点读出。}
-当递归合并到根节点时，由于根节点已对应整个网络，其边界标签为空，即 $\mathcal B_{\mathrm{root}}=\varnothing$。
-因此，根状态不再表示一般的“输出侧 $\times$ 边界侧”接口，而是直接退化为当前输出块的稠密结果。
-若根状态写为 $M_{\mathrm{root}} \approx A_{\mathrm{root}} B_{\mathrm{root}}^\top$，则当前块输出由最后一条秩维收回得到。
+在根节点处，外部边界已经为空，因此根状态不再对应“输出侧 $\times$ 边界侧”的接口矩阵，而是直接对应当前块的输出。
+若仍将其写成低秩因子形式
+\[
+M_{\mathrm{root}} \approx A_{\mathrm{root}} B_{\mathrm{root}}^\top,
+\]
+则当前块输出可通过对中间秩索引求和得到。
 
 \paragraph{精确收缩基线。}
-本文的精确收缩基线 exact-TNC 与 \ours{} 共用同一张量网络实例、同一开放标签顺序以及同一组输出块。对每个输出块 $\Omega_b$，exact-TNC 直接对完整网络执行一次精确收缩，
-\[
-X_{\Omega_b}=\mathrm{contract\_full}(\mathcal N,\Omega_b),
-\]
-并将所得结果写回对应的输出位置。因此，exact-TNC 与 \ours{} 的差别不在输出接口，而在于内部收缩组织方式：前者对每个输出块直接执行全网络精确 contraction，后者则通过划分树上的分隔状态递归完成近似收缩。
+本文的精确收缩基线 \exact{} 与 \ours{} 共用同一张量网络实例、同一开放标签顺序以及同一组输出块。对每个输出块 $\Omega_b$，\exact{} 直接对完整网络执行一次精确收缩，并将所得结果写回对应的输出位置。因此，\exact{} 与 \ours{} 的差别不在输出接口，而在于内部收缩组织方式：前者对每个输出块直接执行全网络精确 contraction，后者则通过划分树上的分隔状态递归完成近似收缩。
 
-exact-TNC 的底层实现调用 \texttt{opt\_einsum.contract} 完成精确张量收缩。\texttt{opt\_einsum} 是一个标准的 einsum 风格张量收缩库，用于选择并执行优化后的 contraction path。除特别说明外，本文对 exact-TNC 统一采用 \texttt{optimal} 路径策略。
-
-\paragraph{复现说明。}
-在随机化压缩中，当前实现采用由基础随机种子与状态键共同确定的确定性伪随机数生成方式。
-因此，同一网络、同一输出块、同一树节点和同一配置下，得到的随机化压缩结果是可重复的。
+\exact{} 作为精确收缩基线，其底层通过 \texttt{opt\_einsum.contract} 实现。%
+\texttt{opt\_einsum} 是一个标准的 einsum 风格张量收缩库，能够自动选择并执行优化后的 contraction path。%
+除特别说明外，本文在 \exact{} 中统一采用 \texttt{optimal} 路径策略。
 
 \subsection{关键实验配置与可复现细节}
 \label{app:exp-details}
@@ -88,7 +87,7 @@ exact-TNC 的底层实现调用 \texttt{opt\_einsum.contract} 完成精确张量
 正文不直接使用实现变量名来描述该设置，是为了把默认设定解释为一种块级计算策略，而不是一组代码开关。
 
 \paragraph{计时与汇总口径。}
-本文采用同任务、同分块、分阶段的统一计时口径。对每个网络实例，先生成同一组输出块，再在该分块上分别运行 exact-TNC 与近似方法；因此，不同方法面对的是相同的输出组织与写回负担。计时使用高精度时钟，并将每个输出块的时间拆分为收缩与写回两段并累计，最终报告
+本文采用同任务、同分块、分阶段的统一计时口径。对每个网络实例，先生成同一组输出块，再在该分块上分别运行 \exact{} 与近似方法；因此，不同方法面对的是相同的输出组织与写回负担。计时使用高精度时钟，并将每个输出块的时间拆分为收缩与写回两段并累计，最终报告
 \[
 T_{\mathrm{total}} = T_{\mathrm{contract}} + T_{\mathrm{emit}} .
 \]
@@ -108,7 +107,7 @@ T_{\mathrm{total}} = T_{\mathrm{contract}} + T_{\mathrm{emit}} .
 \paragraph{正文默认配置的精确定义。}
 正文中 Grid $3\times 3$ 的默认配置对应中等强度预设 \textsf{ASTNC-L2}，并同时启用输出分块、隐式草图合并和块间缓存复用。这里的输出分块采用前两个开放输出轴上的单元素小块。其对应实现参数分别为 \texttt{block\_label\_count=2} 与 \texttt{chunk\_size=1}。
 
-该配置在三个随机种子上的平均结果为：相对误差 $4.08\times 10^{-3}$，收缩时间 $0.5340$ 秒，总时间 $0.5342$ 秒，相对 exact-TNC 的加速为 $88.45\times$，缓存命中率为 $0.440$。因此，正文中的主结果表、机制表以及后文的 blockwise / cache 补充证据都以这一默认配置为统一参照。
+该配置在三个随机种子上的平均结果为：相对误差 $4.08\times 10^{-3}$，收缩时间 $0.5340$ 秒，总时间 $0.5342$ 秒，相对 \exact{} 的加速为 $88.45\times$，缓存命中率为 $0.440$。因此，正文中的主结果表、机制表以及后文的 blockwise / cache 补充证据都以这一默认配置为统一参照。
 
 \paragraph{机制指纹视角。}
 仅看总时间还不足以区分不同机制到底影响了什么。
