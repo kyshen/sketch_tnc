@@ -70,19 +70,19 @@
 \@writefile{toc}{\contentsline {paragraph}{与图模型消去方法的关系。}{2}{section*.5}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {3}方法}{2}{section.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.1}整体思路}{2}{subsection.3.1}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}输出分块与块级状态复用}{2}{subsection.3.2}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}划分树与分隔状态}{3}{subsection.3.3}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}树上的递归合并}{3}{subsection.3.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.2}划分树与分隔状态}{2}{subsection.3.2}\protected@file@percent }
+\abx@aux@cite{0}{halko2011finding}
+\abx@aux@segm{0}{0}{halko2011finding}
+\abx@aux@cite{0}{heddes2026approximating}
+\abx@aux@segm{0}{0}{heddes2026approximating}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.3}树的递归合并}{3}{subsection.3.3}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{叶节点。}{3}{section*.6}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{内部节点。}{3}{section*.7}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{(i) 合并输出侧。}{3}{section*.8}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{(ii) 收缩切割标签，保留边界标签。}{3}{section*.9}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{(iii) 重新压缩。}{3}{section*.10}\protected@file@percent }
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.5}自适应秩选择}{3}{subsection.3.5}\protected@file@percent }
-\abx@aux@cite{0}{halko2011finding}
-\abx@aux@segm{0}{0}{halko2011finding}
-\abx@aux@cite{0}{heddes2026approximating}
-\abx@aux@segm{0}{0}{heddes2026approximating}
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.4}自适应秩选择}{3}{subsection.3.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.5}隐式草图合并}{3}{subsection.3.5}\protected@file@percent }
 \abx@aux@cite{0}{halko2011finding}
 \abx@aux@segm{0}{0}{halko2011finding}
 \abx@aux@cite{0}{bondy2008graph}
@@ -97,7 +97,7 @@
 \abx@aux@segm{0}{0}{erdos1959random}
 \abx@aux@cite{0}{gilbert1959random}
 \abx@aux@segm{0}{0}{gilbert1959random}
-\@writefile{toc}{\contentsline {subsection}{\numberline {3.6}隐式草图合并}{4}{subsection.3.6}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.6}输出分块与块级状态复用}{4}{subsection.3.6}\protected@file@percent }
 \@writefile{toc}{\contentsline {subsection}{\numberline {3.7}算法总览}{4}{subsection.3.7}\protected@file@percent }
 \@writefile{toc}{\contentsline {section}{\numberline {4}实验}{4}{section.4}\protected@file@percent }
 \@writefile{loa}{\contentsline {algorithm}{\numberline {1}{\ignorespaces \textsf  {AS-TNC}{} 的完整输出计算主流程}}{5}{algorithm.1}\protected@file@percent }
@@ -129,7 +129,7 @@
 \newlabel{app:method-details}{{A.1}{8}{方法细节与机制补充}{subsection.A.1}{}}
 \newlabel{app:method-details@cref}{{[subsection][1][1]A.1}{[1][8][]8}{}{}{}}
 \@writefile{toc}{\contentsline {paragraph}{划分树构造。}{8}{section*.17}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{输出分块的实现落地。}{8}{section*.18}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{输出分块。}{8}{section*.18}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{局部块键与块间缓存。}{8}{section*.19}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{根节点读出。}{8}{section*.20}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{精确收缩基线。}{8}{section*.21}\protected@file@percent }
@@ -140,19 +140,19 @@
 \@writefile{toc}{\contentsline {paragraph}{网络构造规则}{8}{section*.23}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{容忍度与强度预设}{8}{section*.24}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{正文默认分块设置的精确定义}{8}{section*.25}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{计时与汇总口径。}{9}{section*.26}\protected@file@percent }
+\@writefile{toc}{\contentsline {paragraph}{计时与汇总口径。}{8}{section*.26}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Grid $3\times 3$ 上的机制指纹图。按指标归一化后，不同变体的主要退化方向变得更清晰：no-blockwise 主要抬高误差与峰值秩，no-implicit 主要恶化运行时间，no-cache 则主要击穿复用相关统计。}}{9}{figure.caption.29}\protected@file@percent }
+\newlabel{fig:mechanism_fingerprint_grid}{{2}{9}{Grid $3\times 3$ 上的机制指纹图。按指标归一化后，不同变体的主要退化方向变得更清晰：no-blockwise 主要抬高误差与峰值秩，no-implicit 主要恶化运行时间，no-cache 则主要击穿复用相关统计。}{figure.caption.29}{}}
+\newlabel{fig:mechanism_fingerprint_grid@cref}{{[figure][2][]2}{[1][9][]9}{}{}{}}
 \@writefile{toc}{\contentsline {subsection}{\numberline {A.3}补充实验结果与机制证据}{9}{subsection.A.3}\protected@file@percent }
 \newlabel{app:extra-exp}{{A.3}{9}{补充实验结果与机制证据}{subsection.A.3}{}}
 \newlabel{app:extra-exp@cref}{{[subsection][3][1]A.3}{[1][9][]9}{}{}{}}
 \@writefile{toc}{\contentsline {paragraph}{正文默认配置的精确定义。}{9}{section*.27}\protected@file@percent }
 \@writefile{toc}{\contentsline {paragraph}{机制指纹视角。}{9}{section*.28}\protected@file@percent }
-\@writefile{toc}{\contentsline {paragraph}{输出分块作为设计空间。}{9}{section*.30}\protected@file@percent }
-\@writefile{lof}{\contentsline {figure}{\numberline {2}{\ignorespaces Grid $3\times 3$ 上的机制指纹图。按指标归一化后，不同变体的主要退化方向变得更清晰：no-blockwise 主要抬高误差与峰值秩，no-implicit 主要恶化运行时间，no-cache 则主要击穿复用相关统计。}}{9}{figure.caption.29}\protected@file@percent }
-\newlabel{fig:mechanism_fingerprint_grid}{{2}{9}{Grid $3\times 3$ 上的机制指纹图。按指标归一化后，不同变体的主要退化方向变得更清晰：no-blockwise 主要抬高误差与峰值秩，no-implicit 主要恶化运行时间，no-cache 则主要击穿复用相关统计。}{figure.caption.29}{}}
-\newlabel{fig:mechanism_fingerprint_grid@cref}{{[figure][2][]2}{[1][9][]9}{}{}{}}
 \@writefile{lof}{\contentsline {figure}{\numberline {3}{\ignorespaces Grid $3\times 3$ 上的 blockwise 设计空间。主图聚焦 practical operating region，点面积编码 peak rank、颜色编码 cache hit rate；inset 单独展示 near-exact 设置，从而使正文默认配置能以“平衡点”而非“被压扁的中间点”被读出。}}{9}{figure.caption.31}\protected@file@percent }
 \newlabel{fig:blockwise_operating_points_grid}{{3}{9}{Grid $3\times 3$ 上的 blockwise 设计空间。主图聚焦 practical operating region，点面积编码 peak rank、颜色编码 cache hit rate；inset 单独展示 near-exact 设置，从而使正文默认配置能以“平衡点”而非“被压扁的中间点”被读出。}{figure.caption.31}{}}
 \newlabel{fig:blockwise_operating_points_grid@cref}{{[figure][3][]3}{[1][9][]9}{}{}{}}
+\@writefile{toc}{\contentsline {paragraph}{输出分块作为设计空间。}{9}{section*.30}\protected@file@percent }
 \abx@aux@read@bbl@mdfivesum{F9D4238128C70EBB389BD44705B675A4}
 \abx@aux@defaultrefcontext{0}{bondy2008graph}{nyt/global//global/global/global}
 \abx@aux@defaultrefcontext{0}{charikar2004finding}{nyt/global//global/global/global}
