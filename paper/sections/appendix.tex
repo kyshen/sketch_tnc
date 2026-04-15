@@ -44,14 +44,13 @@ K(v,\Omega_b)
 若根状态写为 $M_{\mathrm{root}} \approx A_{\mathrm{root}} B_{\mathrm{root}}^\top$，则当前块输出由最后一条秩维收回得到。
 
 \paragraph{精确收缩基线。}
-本文的精确收缩基线 exact-TNC 与 \method{} 共用同一张量网络对象、同一开放标签顺序以及同一组输出块。
-对每个输出块 $\Omega_b$，exact-TNC 直接调用全网络精确收缩
+本文的精确收缩基线 exact-TNC 与 \ours{} 共用同一张量网络实例、同一开放标签顺序以及同一组输出块。对每个输出块 $\Omega_b$，exact-TNC 直接对完整网络执行一次精确收缩，
 \[
-X_{\Omega_b} = \mathrm{contract\_full}(\mathcal N,\Omega_b),
+X_{\Omega_b}=\mathrm{contract\_full}(\mathcal N,\Omega_b),
 \]
-再将结果写回完整输出张量的对应位置。
-其底层实现基于 \texttt{opt\_einsum} 的精确张量收缩接口，并按给定的 \texttt{optimize} 路径策略执行。
-因此，\method{} 与 exact-TNC 的主要差异不在输出接口，而在于 \method{} 以划分树上的分隔状态递归替代了内部全量收缩过程。
+并将所得结果写回对应的输出位置。因此，exact-TNC 与 \ours{} 的差别不在输出接口，而在于内部收缩组织方式：前者对每个输出块直接执行全网络精确 contraction，后者则通过划分树上的分隔状态递归完成近似收缩。
+
+exact-TNC 的底层实现调用 \texttt{opt\_einsum.contract} 完成精确张量收缩。\texttt{opt\_einsum} 是一个标准的 einsum 风格张量收缩库，用于选择并执行优化后的 contraction path。除特别说明外，本文对 exact-TNC 统一采用 \texttt{optimal} 路径策略。
 
 \paragraph{复现说明。}
 在随机化压缩中，当前实现采用由基础随机种子与状态键共同确定的确定性伪随机数生成方式。
@@ -76,9 +75,9 @@ X_{\Omega_b} = \mathrm{contract\_full}(\mathcal N,\Omega_b),
     \textsf{L3} \quad &(3.0\times10^{-3},\;1.5\times10^{-2})
 \end{aligned}
 \]
-正文中的默认 \method{} 即中等强度预设 \textsf{L2}。
+正文中的默认 \ours{} 即中等强度预设 \textsf{L2}。
 
-另外，\method{} 采用 \texttt{depth\_open} 调度：节点局部容忍度按
+另外，\ours{} 采用 \texttt{depth\_open} 调度：节点局部容忍度按
 \[
 \tau_{\mathrm{local}}=\tau_{\mathrm{base}}\cdot(1.5)^{\mathrm{depth}}/(\max(1,\mathrm{open\_count}))^{0.5}
 \]
@@ -89,29 +88,28 @@ X_{\Omega_b} = \mathrm{contract\_full}(\mathcal N,\Omega_b),
 在实现层面，这对应于选取前两个开放标签参与分块，并将每个被分块标签按长度为 1 的局部片段切分。
 正文不直接使用实现变量名来描述该设置，是为了把默认设定解释为一种块级计算策略，而不是一组代码开关。
 
-\paragraph{计时口径与合理性}
-本文采用同任务、同分块、分阶段的统一计时口径。
-对每个网络实例，先生成同一组输出块，然后在该分块上分别运行 exact-TNC 与近似方法；因此不同方法面对的是相同的输出组织与写回负担。
-计时使用高精度时钟，并将每个输出块的时间拆分为收缩与写回两段并累计，最终报告
+\paragraph{计时与汇总口径。}
+本文采用同任务、同分块、分阶段的统一计时口径。对每个网络实例，先生成同一组输出块，再在该分块上分别运行 exact-TNC 与近似方法；因此，不同方法面对的是相同的输出组织与写回负担。计时使用高精度时钟，并将每个输出块的时间拆分为收缩与写回两段并累计，最终报告
 \[
-T_{\mathrm{total}}=T_{\mathrm{contract}}+T_{\mathrm{emit}},
+T_{\mathrm{total}} = T_{\mathrm{contract}} + T_{\mathrm{emit}} .
 \]
 同时给出 $t_{\mathrm{contract}}/t_{\mathrm{total}}$ 作为阶段占比指标。
-速度提升统一定义为
+
+主结果统一在随机种子 $\{0,1,2\}$ 上重复运行。除特别说明外，表中报告的相对误差、收缩时间、总时间、阶段占比与缓存命中率均为三个种子结果的算术平均。速度提升统一定义为
 \[
 \mathrm{speedup}=T_{\mathrm{exact\text{-}TNC}}/T_{\mathrm{method}},
 \]
-并在多个随机种子（$\{0,1,2\}$）上汇总，从而降低单次运行抖动对结论的影响。
+并由平均总时间之比计算。
 
 \subsection{补充实验结果与机制证据}
 \label{app:extra-exp}
 
-本节补充正文未完全展开的三个问题：第一，正文默认 \method{} 配置在 Grid $3\times 3$ 上到底对应什么；第二，不同机制变体的影响究竟落在哪些内部指标上；第三，输出分块为何更像是在定义一个设计空间，而不只是一个简单开关。
+本节补充正文未完全展开的三个问题：第一，正文默认 \ours{} 配置在 Grid $3\times 3$ 上到底对应什么；第二，不同机制变体的影响究竟落在哪些内部指标上；第三，输出分块为何更像是在定义一个设计空间，而不只是一个简单开关。
 
 \paragraph{正文默认配置的精确定义。}
-在补强实验中，正文所引用的 Grid $3\times 3$ 默认配置对应同一批 core runs：方法为中等强度预设 \textsf{L2}，沿前两个输出轴按单索引块逐块生成完整输出，同时启用隐式草图合并与块间缓存复用。
-该配置在三个随机种子上的平均结果为：相对误差 $4.08\times 10^{-3}$，收缩时间 $0.5340$ 秒，总时间 $0.5342$ 秒，相对 exact-TNC 的加速为 $88.45\times$，缓存命中率为 $0.440$。
-因此，正文中的主结果表、机制表以及后文的 blockwise / cache 补充证据都以这一默认配置为统一参照。
+正文中 Grid $3\times 3$ 的默认配置对应中等强度预设 \textsf{ASTNC-L2}，并同时启用输出分块、隐式草图合并和块间缓存复用。这里的输出分块采用前两个开放输出轴上的单元素小块。其对应实现参数分别为 \texttt{block\_label\_count=2} 与 \texttt{chunk\_size=1}。
+
+该配置在三个随机种子上的平均结果为：相对误差 $4.08\times 10^{-3}$，收缩时间 $0.5340$ 秒，总时间 $0.5342$ 秒，相对 exact-TNC 的加速为 $88.45\times$，缓存命中率为 $0.440$。因此，正文中的主结果表、机制表以及后文的 blockwise / cache 补充证据都以这一默认配置为统一参照。
 
 \paragraph{机制指纹视角。}
 仅看总时间还不足以区分不同机制到底影响了什么。

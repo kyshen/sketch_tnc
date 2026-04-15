@@ -42,6 +42,9 @@
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta,fit,calc}
+
 \addbibresource{ref.bib}
 
 \hypersetup{
@@ -65,7 +68,8 @@
 \setlength{\belowcaptionskip}{0pt}
 \setlength{\emergencystretch}{2em}
 
-\newcommand{\method}{\textsf{AS-TNC}}
+\newcommand{\ours}{\textsf{AS-TNC}}
+\newcommand{\exact}{\textsf{exact-TNC}}
 \newcommand{\RR}{\mathbb{R}}
 \newcommand{\norm}[1]{\left\lVert #1 \right\rVert}
 \newcommand{\best}[1]{\textbf{#1}}

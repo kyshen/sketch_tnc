@@ -2,11 +2,7 @@
 
 \subsection{整体思路}
 设 $\mathcal N$ 为一个带开放腿的张量网络，其开放标签集合记为 $\mathcal O$，内部收缩标签集合记为 $\mathcal I$。
-将所有内部标签收缩后，可得到完整输出张量
-\[
-X \in \mathbb{R}^{d_1 \times \cdots \times d_{|\mathcal O|}}.
-\]
-本文关注的不是标量收缩或局部查询，而是在保留开放腿的情况下显式生成完整输出张量。
+将所有内部标签收缩后，可得到完整输出张量 $X \in \mathbb{R}^{d_1 \times \cdots \times d_{|\mathcal O|}}$.
 相应地，端到端时间可写为
 \[
 T_{\mathrm{total}} = T_{\mathrm{contract}} + T_{\mathrm{emit}},
@@ -29,11 +25,11 @@ T_{\mathrm{total}} = T_{\mathrm{contract}} + T_{\mathrm{emit}},
 \[
 \mathcal O = (\ell_1,\ell_2,\ldots,\ell_m).
 \]
-我们选取其中前 $q$ 个开放标签作为分块轴，并将每个分块轴上的索引集合划分为若干局部片段。
+为了简单起见，本文选取其中前 $q$ 个开放标签作为分块轴，并将每个分块轴上的索引集合划分为若干局部片段。
 一个输出块 $\Omega_b$ 即由这些局部片段的笛卡尔积给出。
 
 这里的输出分块不只是写回时的调度单位。
-更重要的是，在固定某个输出块后，部分开放标签在当前块中只剩下较小的局部自由度，因此各个子树所见到的“输出侧”规模也会随之改变。
+更重要的是，在固定某个输出块后，部分开放标签在当前块中只剩下较小的局部自由度，因此各个子树所见到的输出侧规模也会随之改变。
 这会直接影响分隔状态的行维大小，从而改变整个递归收缩过程中的中间状态规模。
 
 进一步地，不同全局输出块在某些子树上往往诱导出相同的局部限制条件。
@@ -278,7 +274,7 @@ B = V_r \Sigma_r^{1/2},
 划分树构造、局部块键缓存、精确收缩基线的实现接口以及随机化压缩的可重复性设置见附录~\Cref{app:method-details}。
 
 \begin{algorithm}[t]
-\caption{\method{} 的完整输出计算主流程}
+\caption{\ours{} 的完整输出计算主流程}
 \label{alg:astnc}
 \begin{algorithmic}[1]
 \Require 张量网络 $\mathcal N$，输出块集合 $\{\Omega_b\}_{b=1}^B$，压缩配置 $\theta$
