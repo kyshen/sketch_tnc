@@ -57,35 +57,60 @@ M_{\mathrm{root}} \approx A_{\mathrm{root}} B_{\mathrm{root}}^\top,
 \subsection{关键实验配置与可复现细节}
 \label{app:exp-details}
 
-本小节补充正文未展开但会显著影响结果解释与复现实验的关键设置。
+本小节集中给出正文实验所需的数值级配置，并将论文中的方法名称与实现参数一一对应。
 
-\paragraph{网络构造规则}
-网络采用\texttt{networkx}库生成。Tree-8 使用\texttt{random\_labeled\_tree} ；Random-8 使用 \texttt{networkx.erdos\_renyi\_graph} 并重复采样直至连通，边概率 $p=0.35$。
-两者都由全局随机种子驱动（主实验种子为 $\{0,1,2\}$）。
+\paragraph{统一任务与网络规模.}
+除特别说明外，所有主实验均在带开放腿张量网络的完整输出计算任务上进行。
+四类主结果网络分别为 Ring-8、Tree-8、Grid $3\times 3$ 和 Random-8。
+除拓扑外，共享如下规模设置：每个节点 1 条开放腿，物理维 $=3$，键维 $=4$。
+其中，Tree-8 由随机树生成；Random-8 由连通的 Erd\H{o}s--Rényi 图生成，边概率为 $p=0.35$。
 
-\paragraph{容忍度与强度预设}
-实现中对叶子和合并操作使用不同的容忍度 $\tau_{\mathrm{leaf}}$ 和 $\tau_{\mathrm{merge}}$，强度扫描三档分别为
-\[
-\begin{aligned}
-    \textsf{L1} \quad &(5.0\times10^{-4},\;2.0\times10^{-3})\\
-    \textsf{L2} \quad &(1.0\times10^{-3},\;5.0\times10^{-3})\\
-    \textsf{L3} \quad &(3.0\times10^{-3},\;1.5\times10^{-2})
-\end{aligned}
-\]
-容忍度调度参描为 $\gamma=1.5,\ \beta=0.5$。
+\paragraph{随机种子与汇总方式.}
+主结果统一在随机种子 $\{0,1,2\}$ 上重复运行。
+除特别说明外，表中报告的相对误差、收缩时间、总时间、阶段占比与缓存命中率均为三个种子结果的算术平均。
 
-\paragraph{计时与汇总口径。}
-本文采用同任务、同分块、分阶段的统一计时口径。对每个网络实例，先生成同一组输出块，再在该分块上分别运行 \exact{} 与近似方法；因此，不同方法面对的是相同的输出组织与写回负担。计时使用高精度时钟，并将每个输出块的时间拆分为收缩与写回两段并累计，最终报告
+\paragraph{论文名称与实现参数的对应.}
+\begin{table}[t]
+\centering
+\small
+\caption{正文方法名称与关键实现参数的对应关系。}
+\label{tab:exp-config-map}
+\begin{adjustbox}{max width=\columnwidth}
+\begin{tabular}{llll}
+\toprule
+Name & rank policy & rank setting & tolerance setting \\
+\midrule
+\exact{} & exact & \na & \na \\
+\fixrank{} & fixed & $r=4$ & \na \\
+\textsf{ASTNC-L1} & adaptive & target $=2$, max $=16$ & $(\tau_{\text{leaf}},\tau_{\text{merge}})=(5 \times 10^{-4},\,2 \times 10^{-3})$ \\
+\textsf{ASTNC-L2} & adaptive & target $=2$, max $=16$ & $(\tau_{\text{leaf}},\tau_{\text{merge}})=(10^{-3},\,5 \times 10^{-3})$ \\
+\textsf{ASTNC-L3} & adaptive & target $=2$, max $=16$ & $(\tau_{\text{leaf}},\tau_{\text{merge}})=(3 \times 10^{-3},\,1.5 \times 10^{-2})$ \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table}
+
+除强度预设外，自适应版本共享如下设置：采用 \texttt{depth\_open} 局部容忍度调度，
+其中 $\gamma=1.5,\ \beta=0.5$；随机化压缩取 \texttt{oversample=1}、\texttt{n\_power\_iter=0}；
+并启用隐式草图合并、块间缓存复用与选择性压缩的默认实现开关。
+
+\paragraph{正文默认工作点.}
+正文默认的 \ours{} 对应 \textsf{ASTNC-L2}，并同时启用输出分块、隐式草图合并和块间缓存复用。
+默认输出分块配置为：沿前两个开放标签进行分块，且每个分块轴上的局部片段长度为 $1$。
+机制消融实验均以该默认工作点为参照，并仅关闭被考察组件，其余设置保持不变。
+
+\paragraph{统一后端与计时口径.}
+\exact{} 通过 \texttt{opt\_einsum.contract} 实现，并统一采用 \texttt{optimal} 路径策略。
+所有方法在同一张量网络实例、同一开放标签顺序和同一组输出块上运行，因此面对相同的输出组织与写回负担。
+计时采用分阶段口径，并统一报告
 \[
 T_{\mathrm{total}} = T_{\mathrm{contract}} + T_{\mathrm{emit}} .
 \]
-同时给出 $t_{\mathrm{contract}}/t_{\mathrm{total}}$ 作为阶段占比指标。
-
-主结果统一在随机种子 $\{0,1,2\}$ 上重复运行。除特别说明外，表中报告的相对误差、收缩时间、总时间、阶段占比与缓存命中率均为三个种子结果的算术平均。速度提升统一定义为
+速度提升定义为
 \[
-\mathrm{speedup}=T_{\mathrm{exact\text{-}TNC}}/T_{\mathrm{method}},
+\mathrm{speedup}=T_{\mathrm{exact}}/T_{\mathrm{method}}.
 \]
-并由平均总时间之比计算。
+正文中的阶段分解表进一步报告 $t_{\mathrm{contract}}/t_{\mathrm{total}}$，用于区分收益主要来自内部收缩还是输出写回。
 
 \subsection{补充实验结果与机制证据}
 \label{app:extra-exp}
