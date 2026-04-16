@@ -60,8 +60,7 @@ M_{\mathrm{root}} \approx A_{\mathrm{root}} B_{\mathrm{root}}^\top,
 本小节补充正文未展开但会显著影响结果解释与复现实验的关键设置。
 
 \paragraph{网络构造规则}
-主结果使用 Ring-8、Tree-8、Grid $3\times 3$ 与 Random-8。
-其中，Tree-8 使用随机标号树生成（\texttt{networkx.random\_labeled\_tree}），节点数固定为 8；Random-8 使用 Erd\H{o}s--R\'enyi 随机图并重复采样直至连通（\texttt{networkx.erdos\_renyi\_graph} + connectedness check），节点数固定为 8，边概率 $p=0.35$。
+网络采用\texttt{networkx}库生成。Tree-8 使用\texttt{random\_labeled\_tree} ；Random-8 使用 \texttt{networkx.erdos\_renyi\_graph} 并重复采样直至连通，边概率 $p=0.35$。
 两者都由全局随机种子驱动（主实验种子为 $\{0,1,2\}$）。
 
 \paragraph{容忍度与强度预设}
@@ -73,7 +72,6 @@ M_{\mathrm{root}} \approx A_{\mathrm{root}} B_{\mathrm{root}}^\top,
     \textsf{L3} \quad &(3.0\times10^{-3},\;1.5\times10^{-2})
 \end{aligned}
 \]
-正文中的默认 \ours{} 即中等强度预设 \textsf{L2}。
 
 另外，\ours{} 采用 \texttt{depth\_open} 调度：节点局部容忍度按
 \[
