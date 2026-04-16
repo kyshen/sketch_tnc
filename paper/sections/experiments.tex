@@ -4,16 +4,15 @@
 
 \subsection{实验设置}
 
-我们主要报告四类有代表性的经典网络：Ring-8~\cite{bondy2008graph}、Tree-8~\cite{diestel2017graph}、Grid $3\times 3$~\cite{levin2007trg,orus2014practical} 与 Random-8~\cite{erdos1959random,gilbert1959random}；其中，8 表示节点数，$3\times 3$ 表示二维网格规模。
+我们主要报告四类有代表性的网络：Ring-8~\cite{bondy2008graph}、Tree-8~\cite{diestel2017graph}、Grid $3\times 3$~\cite{levin2007trg,orus2014practical} 与 Random-8~\cite{erdos1959random,gilbert1959random}；其中，8 表示节点数，$3\times 3$ 表示二维网格规模。
 每个节点都带 1 条开放腿，物理维统一取 $3$，键维统一取 $4$。
 
 \ours{} 采用三档近似强度预设，分别记为 \textsf{L1}、\textsf{L2} 与 \textsf{L3}，对应由弱到强的近似。
-除特别说明外，正文中的 \ours{} 指中等强度预设 \textsf{L2}。
+如无明确说明，默认为中等强度预设 \textsf{L2}。
 
-对比方法包括精确收缩基线 \exact{}、固定秩基线与 \ours{}。
-固定秩基线统一设置秩为 4，目的是提供一个明确的小秩快速近似参照。
-为了保证比较公平，\exact{} 与 \ours{} 使用同一张量网络实例、同一开放标签顺序以及同一组输出块，并采用相同的块级写回接口；
-二者的差别只在内部收缩组织方式：\exact{} 对每个输出块直接执行一次精确全网络收缩，而 \ours{} 则通过划分树上的分隔状态递归完成近似收缩。
+对比方法包括精确收缩基线 \exact{} 和固定秩基线 \fixrank{}。
+为了保证比较公平，都使用同一张量网络实例、同一开放标签顺序以及同一组输出块，并采用相同的块级写回接口；
+差别只在内部收缩组织方式：\exact{} 对每个输出块直接执行一次精确全网络收缩，而 \fixrank{} 和 \ours{} 则通过划分树上的分隔状态递归完成收缩。
 
 除特别说明外，主实验沿前两个开放输出轴逐块生成完整输出，每个输出块在这两个轴上各只包含一个索引位置。
 这种设置一方面限制了单次输出块的规模，另一方面也使不同输出块之间更容易出现可复用的局部子树状态。
